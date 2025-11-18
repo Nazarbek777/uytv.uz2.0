@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Development;
+use App\Models\DevelopmentProperty;
 use App\Models\Property;
 use Illuminate\Http\Request;
 
@@ -208,6 +209,7 @@ class PageController
         app()->setLocale($locale);
 
         $query = Development::where('status', 'published')
+            ->with(['builder', 'properties'])
             ->orderBy('created_at', 'desc');
 
         // Filters
@@ -227,9 +229,66 @@ class PageController
             $query->where('price_per_sqm', '<=', $request->max_price);
         }
 
+        if ($request->has('bedrooms')) {
+            $query->whereHas('properties', function($q) use ($request) {
+                $q->where('bedrooms', $request->bedrooms);
+            });
+        }
+
         $developments = $query->paginate(12);
 
-        return view('pages.developments.index', compact('developments', 'locale'));
+        // Cities for filter
+        $cities = Development::where('status', 'published')
+            ->distinct()
+            ->pluck('city')
+            ->filter()
+            ->sort()
+            ->values();
+
+        // Statistics for "Hot Offers"
+        $stats = [
+            'lowest_price_sqm' => Development::where('status', 'published')
+                ->whereNotNull('price_per_sqm')
+                ->min('price_per_sqm') ?? 0,
+            'cheapest_apartment' => DevelopmentProperty::whereHas('development', function($q) {
+                    $q->where('status', 'published');
+                })
+                ->whereNotNull('price_from')
+                ->min('price_from') ?? 0,
+            'lowest_down_payment' => 0, // Need to add this field
+            'lowest_monthly_payment' => 0, // Need to add this field
+            'longest_payment_period' => 0, // Need to add this field
+            'highest_discount' => 0, // Need to add this field
+        ];
+
+        // Min/Max price for price filter
+        $minPrice = Development::where('status', 'published')
+            ->whereNotNull('price_per_sqm')
+            ->min('price_per_sqm') ?? 0;
+        $maxPrice = Development::where('status', 'published')
+            ->whereNotNull('price_per_sqm')
+            ->max('price_per_sqm') ?? 100000000;
+
+        // Bedrooms options
+        $bedrooms = DevelopmentProperty::whereHas('development', function($q) {
+                $q->where('status', 'published');
+            })
+            ->whereNotNull('bedrooms')
+            ->distinct()
+            ->pluck('bedrooms')
+            ->filter()
+            ->sort()
+            ->values();
+
+        return view('pages.page-developments', compact(
+            'developments',
+            'locale',
+            'cities',
+            'stats',
+            'minPrice',
+            'maxPrice',
+            'bedrooms'
+        ));
     }
 
     /**
@@ -248,6 +307,6 @@ class PageController
         // Increment views
         $development->increment('views');
 
-        return view('pages.developments.show', compact('development', 'locale'));
+        return view('pages.single-development', compact('development', 'locale'));
     }
 }

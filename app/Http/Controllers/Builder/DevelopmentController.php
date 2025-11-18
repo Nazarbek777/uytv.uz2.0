@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Developer;
+namespace App\Http\Controllers\Builder;
 
 use App\Http\Controllers\Controller;
 use App\Models\Development;
@@ -23,7 +23,7 @@ class DevelopmentController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
-        return view('developer.developments.index', compact('developments'));
+        return view('builder.developments.index', compact('developments'));
     }
 
     /**
@@ -31,7 +31,7 @@ class DevelopmentController extends Controller
      */
     public function create()
     {
-        return view('developer.developments.create');
+        return view('builder.developments.create');
     }
 
     /**
@@ -117,7 +117,7 @@ class DevelopmentController extends Controller
                 ]);
             }
 
-            return redirect()->route('developer.developments.index')
+            return redirect()->route('builder.developments.index')
                 ->with('success', 'Yangi qurilish yaratildi! Endi uni tahrirlashingiz va tasdiqlashga yuborishingiz mumkin.');
 
         } catch (\Exception $e) {
@@ -135,7 +135,7 @@ class DevelopmentController extends Controller
             ->with(['properties', 'floorPlans', 'documents'])
             ->findOrFail($id);
 
-        return view('developer.developments.show', compact('development'));
+        return view('builder.developments.show', compact('development'));
     }
 
     /**
@@ -149,11 +149,11 @@ class DevelopmentController extends Controller
 
         // Faqat draft yoki rejected status'da tahrirlash mumkin
         if (!in_array($development->status, ['draft', 'rejected'])) {
-            return redirect()->route('developer.developments.index')
+            return redirect()->route('builder.developments.index')
                 ->with('error', 'Faqat tasdiqlanmagan loyihalarni tahrirlash mumkin.');
         }
 
-        return view('developer.developments.edit', compact('development'));
+        return view('builder.developments.edit', compact('development'));
     }
 
     /**
@@ -165,7 +165,7 @@ class DevelopmentController extends Controller
 
         // Faqat draft yoki rejected status'da tahrirlash mumkin
         if (!in_array($development->status, ['draft', 'rejected'])) {
-            return redirect()->route('developer.developments.index')
+            return redirect()->route('builder.developments.index')
                 ->with('error', 'Faqat tasdiqlanmagan loyihalarni tahrirlash mumkin.');
         }
 
@@ -245,7 +245,7 @@ class DevelopmentController extends Controller
                 }
             }
 
-            return redirect()->route('developer.developments.index')
+            return redirect()->route('builder.developments.index')
                 ->with('success', 'Loyiha yangilandi!');
 
         } catch (\Exception $e) {
@@ -263,7 +263,7 @@ class DevelopmentController extends Controller
 
         // Faqat draft status'da o'chirish mumkin
         if ($development->status !== 'draft') {
-            return redirect()->route('developer.developments.index')
+            return redirect()->route('builder.developments.index')
                 ->with('error', 'Faqat tasdiqlanmagan loyihalarni o\'chirish mumkin.');
         }
 
@@ -280,7 +280,7 @@ class DevelopmentController extends Controller
 
             $development->delete();
 
-            return redirect()->route('developer.developments.index')
+        return redirect()->route('builder.developments.index')
                 ->with('success', 'Loyiha o\'chirildi.');
 
         } catch (\Exception $e) {

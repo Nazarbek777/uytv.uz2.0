@@ -6,7 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class DeveloperMiddleware
+class BuilderMiddleware
 {
     /**
      * Handle an incoming request.
@@ -26,9 +26,9 @@ class DeveloperMiddleware
             return redirect()->route('home')->with('error', 'Sizda role belgilanmagan. Iltimos, admin bilan bog\'laning.');
         }
 
-        if (!$user->isDeveloper()) {
+        if (!$user->isBuilder()) {
             $currentRole = $user->role ?? 'belgilanmagan';
-            return redirect()->route('home')->with('error', "Sizda developer huquqi yo'q. Sizning rolingiz: {$currentRole}.");
+            return redirect()->route('home')->with('error', "Sizda builder huquqi yo'q. Sizning rolingiz: {$currentRole}.");
         }
 
         return $next($request);
