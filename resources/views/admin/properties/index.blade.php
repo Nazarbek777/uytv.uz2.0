@@ -4,15 +4,45 @@
 @section('page-title', 'Uy-joylar Boshqaruvi')
 
 @section('content')
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="admin-card">
+            <p class="text-muted mb-1">Jami e'lonlar</p>
+            <h3 class="mb-0">{{ number_format($stats['total']) }}</h3>
+            <small class="text-success"><i class="bi bi-arrow-up-right"></i> Bugun: {{ $stats['today'] }}</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card">
+            <p class="text-muted mb-1">Kutilayotgan</p>
+            <h4 class="mb-0 text-warning">{{ number_format($stats['pending']) }}</h4>
+            <small class="text-muted">Tasdiqlash talab etiladi</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card">
+            <p class="text-muted mb-1">Nashr qilingan</p>
+            <h4 class="mb-0 text-success">{{ number_format($stats['published']) }}</h4>
+            <small class="text-muted">Faol e'lonlar</small>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card">
+            <p class="text-muted mb-1">Rad etilgan</p>
+            <h4 class="mb-0 text-danger">{{ number_format($stats['rejected']) }}</h4>
+            <small class="text-muted">Ko'rib chiqish kerak</small>
+        </div>
+    </div>
+</div>
+
 <div class="admin-table mb-4">
-    <div class="p-3 border-bottom d-flex justify-content-between align-items-center">
-        <h5 class="mb-0"><i class="bi bi-house-door me-2"></i>Barcha Uy-joylar</h5>
-        <div>
-            <span class="badge bg-primary">{{ $properties->total() }} ta uy-joy</span>
+    <div class="p-4 border-bottom">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="mb-0"><i class="bi bi-house-door me-2"></i>Barcha uy-joylar</h5>
+            <span class="badge bg-primary bg-opacity-10 text-primary">{{ $properties->total() }} ta natija</span>
         </div>
     </div>
     
-    <!-- Filters -->
     <div class="p-3 bg-light border-bottom">
         <form method="GET" action="{{ route('admin.properties.index') }}" class="row g-3">
             <div class="col-md-3">
@@ -50,7 +80,8 @@
         </form>
     </div>
     
-    <table class="table table-hover mb-0">
+    <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
         <thead>
             <tr>
                 <th>ID</th>
@@ -67,6 +98,12 @@
         </thead>
         <tbody>
             @forelse($properties as $property)
+            @php
+                $title = $property->translate('uz')->title
+                    ?? $property->translate('ru')->title
+                    ?? $property->translate('en')->title
+                    ?? 'Sarlavha belgilanmagan';
+            @endphp
             <tr>
                 <td>#{{ $property->id }}</td>
                 <td>
@@ -80,13 +117,19 @@
                 </td>
                 <td>
                     <a href="{{ route('admin.properties.show', $property->id) }}" class="text-decoration-none fw-semibold">
-                        {{ $property->title }}
+                        {{ $title }}
                     </a>
-                    <br>
-                    <small class="text-muted">{{ $property->city ?? 'N/A' }}</small>
+                    <div class="text-muted small">
+                        <i class="bi bi-geo-alt me-1"></i>{{ $property->city ?? 'Noma\'lum joy' }}
+                    </div>
                 </td>
-                <td>{{ $property->user->name ?? 'N/A' }}</td>
-                <td class="fw-bold text-main">{{ number_format($property->price) }} {{ $property->currency }}</td>
+                <td>
+                    <div class="d-flex flex-column">
+                        <span class="fw-semibold">{{ $property->user->name ?? 'N/A' }}</span>
+                        <small class="text-muted">{{ $property->user->email ?? '' }}</small>
+                    </div>
+                </td>
+                <td class="fw-bold text-main">{{ number_format($property->price, 0, '.', ' ') }} {{ $property->currency }}</td>
                 <td>
                     <span class="badge-status badge-{{ $property->status }}">
                         {{ ucfirst($property->status) }}
@@ -151,10 +194,11 @@
             @endforelse
         </tbody>
     </table>
+    </div>
     
     @if($properties->hasPages())
     <div class="p-3 border-top">
-        {{ $properties->links() }}
+        {{ $properties->onEachSide(1)->links('pagination::bootstrap-5') }}
     </div>
     @endif
 </div>

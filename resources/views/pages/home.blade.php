@@ -1,2120 +1,793 @@
 @extends('layouts.page')
 @section('content')
 
-    <!-- ============================ Hero Banner  Start================================== -->
-    <div class="image-bottom hero-banner" style="background:#087ce1 url(https://shreethemes.net/resido-2.3/resido/assets/img/banner.png) no-repeat;" data-overlay="0">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-9 col-md-11 col-sm-12">
-                    <div class="inner-banner-text text-center mb-2">
-                        <h2 class="mb-4"><span class="font-normal">Find Your</span> Perfect Place.</h2>
-                        <p class="fs-5 fw-light px-xl-4 px-lg-4">Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken for type specimens</p>
+@php
+    $locale = $locale ?? app()->getLocale();
+    $featuredProperties = $featuredProperties ?? collect();
+    $latestProperties = $latestProperties ?? collect();
+    $featuredDevelopments = $featuredDevelopments ?? collect();
+    $latestDevelopments = $latestDevelopments ?? collect();
+    $cities = $cities ?? collect();
+    
+    // Separate properties by listing type
+    $saleProperties = $latestProperties->where('listing_type', 'sale')->take(6);
+    $rentProperties = $latestProperties->where('listing_type', 'rent')->take(6);
+    
+    // Get developments for dropdown
+    $allDevelopments = \App\Models\Development::where('status', 'published')
+        ->orderBy('title_' . $locale, 'asc')
+        ->get();
+@endphp
+
+<style>
+    .hero-banner-ideal {
+        background: linear-gradient(135deg, rgba(9, 135, 245, 0.85) 0%, rgba(7, 116, 212, 0.85) 100%), url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=1920&h=1080&fit=crop') center/cover no-repeat;
+        padding: 100px 0 80px;
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+    }
+    .hero-search-ideal {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+    .search-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid #f0f0f0;
+        margin-bottom: 20px;
+    }
+    .search-tabs button {
+        padding: 12px 24px;
+        border: none;
+        background: transparent;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s;
+    }
+    .search-tabs button.active {
+        color: #0987f5 !important;
+        border-bottom-color: #0987f5 !important;
+    }
+    .search-fields-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .search-field {
+        position: relative;
+    }
+    .search-field select,
+    .search-field input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+    .search-field select:focus,
+    .search-field input:focus {
+        outline: none;
+        border-color: #0987f5 !important;
+        box-shadow: 0 0 0 3px rgba(9, 135, 245, 0.1);
+    }
+    .search-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-search-main {
+        background: #0987f5 !important;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        flex: 1;
+    }
+    .btn-search-map {
+        background: white;
+        color: #0987f5;
+        border: 2px solid #0987f5;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .development-card {
+        cursor: pointer;
+    }
+    .development-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(9, 135, 245, 0.2) !important;
+    }
+    .development-card img {
+        transition: transform 0.3s;
+    }
+    .development-card:hover img {
+        transform: scale(1.05);
+    }
+</style>
+
+<!-- ============================ Hero Banner Ideal Start ================================== -->
+<div class="hero-banner-ideal">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-11 col-md-12">
+                <div class="text-center mb-4">
+                    <h1 class="text-white mb-3" style="font-size: 48px; font-weight: 700; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                        {{ $locale === 'uz' ? 'Orzuingizdagi uy toping' : ($locale === 'ru' ? 'Найди дом своей мечты прямо сейчас' : 'Find Your Dream Home Right Now') }}
+                    </h1>
+                </div>
+                
+                <form action="{{ route('page.listings') }}" method="GET" class="hero-search-ideal">
+                    <div class="search-tabs">
+                        <button type="button" class="search-tab-btn active" data-tab="sale">
+                            {{ $locale === 'uz' ? 'Sotuv' : ($locale === 'ru' ? 'Купить' : 'Buy') }}
+                        </button>
+                        <button type="button" class="search-tab-btn" data-tab="rent">
+                            {{ $locale === 'uz' ? 'Ijara' : ($locale === 'ru' ? 'Снять' : 'Rent') }}
+                        </button>
                     </div>
-                    <div class="full-search-2 eclip-search italian-search hero-search-radius shadow-hard mt-5">
-                        <div class="hero-search-content">
-                            <div class="row">
-
-                                <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 b-r">
-                                    <div class="form-group">
-                                        <div class="choose-propert-type">
-                                            <ul>
-                                                <li>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="radio" id="typbuy" name="typeprt">
-                                                        <label class="form-check-label" for="typbuy">
-                                                            For Buy
-                                                        </label>
-                                                    </div>
-                                                </li>
-                                                <li>
-                                                    <div class="form-check">
-                                                        <input class="form-check-input" type="radio" id="typrent" name="typeprt" checked>
-                                                        <label class="form-check-label" for="typrent">
-                                                            For Rent
-                                                        </label>
-                                                    </div>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-7 col-lg-7 col-md-5 col-sm-12 p-md-0 elio">
-                                    <div class="form-group border-start borders">
-                                        <div class="position-relative">
-                                            <input type="text" class="form-control border-0 ps-5" placeholder="Search for a location">
-                                            <div class="position-absolute top-50 start-0 translate-middle-y ms-2">
-														<span class="svg-icon text-main svg-icon-2hx">
-															<svg width="25" height="25" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-															</svg>
-														</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-xl-2 col-lg-2 col-md-3 col-sm-12">
-                                    <div class="form-group">
-                                        <button type="button" class="btn btn-dark full-width">Search</button>
-                                    </div>
-                                </div>
-
-                            </div>
+                    
+                    <input type="hidden" name="listing_type" id="listing_type_input" value="sale">
+                    
+                    <div class="search-fields-grid">
+                        <div class="search-field">
+                            <select name="development_id" class="form-control">
+                                <option value="">{{ $locale === 'uz' ? 'ЖК (Yashil kompleks)' : ($locale === 'ru' ? 'ЖК (жилые комплексы)' : 'Residential Complex') }}</option>
+                                @foreach($allDevelopments as $dev)
+                                    <option value="{{ $dev->id }}">{{ $dev->{'title_' . $locale} ?? $dev->title_uz }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="search-field">
+                            <select name="bedrooms" class="form-control">
+                                <option value="">{{ $locale === 'uz' ? 'Xonalar soni' : ($locale === 'ru' ? 'Количество комнат' : 'Number of Rooms') }}</option>
+                                <option value="1">1 {{ $locale === 'uz' ? 'xona' : ($locale === 'ru' ? 'комната' : 'room') }}</option>
+                                <option value="2">2 {{ $locale === 'uz' ? 'xona' : ($locale === 'ru' ? 'комнаты' : 'rooms') }}</option>
+                                <option value="3">3 {{ $locale === 'uz' ? 'xona' : ($locale === 'ru' ? 'комнаты' : 'rooms') }}</option>
+                                <option value="4">4+ {{ $locale === 'uz' ? 'xona' : ($locale === 'ru' ? 'комнаты' : 'rooms') }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="search-field">
+                            <select name="price_range" class="form-control">
+                                <option value="">{{ $locale === 'uz' ? 'Narx' : ($locale === 'ru' ? 'Цена' : 'Price') }}</option>
+                                <option value="0-50000000">{{ $locale === 'uz' ? '50 mln gacha' : ($locale === 'ru' ? 'До 50 млн' : 'Up to 50M') }}</option>
+                                <option value="50000000-100000000">{{ $locale === 'uz' ? '50-100 mln' : ($locale === 'ru' ? '50-100 млн' : '50-100M') }}</option>
+                                <option value="100000000-200000000">{{ $locale === 'uz' ? '100-200 mln' : ($locale === 'ru' ? '100-200 млн' : '100-200M') }}</option>
+                                <option value="200000000-">{{ $locale === 'uz' ? '200 mln+' : ($locale === 'ru' ? 'От 200 млн' : '200M+') }}</option>
+                            </select>
+                        </div>
+                        
+                        <div class="search-field">
+                            <select name="city" class="form-control">
+                                <option value="">{{ $locale === 'uz' ? 'Barcha shaharlar' : ($locale === 'ru' ? 'По всему Узбекистану' : 'All Cities') }}</option>
+                                @foreach($cities as $city)
+                                    <option value="{{ $city }}">{{ $city }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <div class="search-field">
+                            <input type="text" name="search" placeholder="{{ $locale === 'uz' ? 'Qidirish...' : ($locale === 'ru' ? 'Самые дешевые квартиры' : 'Search...') }}" class="form-control">
                         </div>
                     </div>
-
-                </div>
+                    
+                    <div class="search-actions">
+                        <a href="{{ route('map') }}" class="btn-search-map">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="currentColor"/>
+                            </svg>
+                            {{ $locale === 'uz' ? 'Xaritada' : ($locale === 'ru' ? 'На карте' : 'On Map') }}
+                        </a>
+                        <button type="submit" class="btn-search-main">
+                            {{ $locale === 'uz' ? 'Qidirish' : ($locale === 'ru' ? 'Поиск' : 'Search') }}
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    <!-- ============================ Hero Banner End ================================== -->
+</div>
+<!-- ============================ Hero Banner Ideal End ================================== -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.search-tab-btn');
+    const listingTypeInput = document.getElementById('listing_type_input');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            listingTypeInput.value = this.dataset.tab;
+        });
+    });
+});
+</script>
 
 
-    <!-- ============================ Popular Promotions Start ================================== -->
-    <section class="py-5 pb-0">
-        <div class="container">
+<!-- ============================ Popular Promotions Start ================================== -->
+<section class="py-5 pb-0">
+    <div class="container">
 
-            <div class="row justify-content-center g-3">
+        <div class="row justify-content-center g-3">
 
-                <!-- Single Promotion -->
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                    <div class="card rounded-2 p-3 border">
-
-                        <div class="mortgage-caption mb-3">
-                            <h5 class="fs-5 mb-0">Mortgage</h5>
-                            <p>Special offer for houses in Chicago</p>
-                        </div>
-
-                        <div class="mortgage-footer d-flex align-items-center justify-content-between">
-                            <div class="promotion-rates">
-                                <span class="text-md text-muted">Rates</span>
-                                <h6 class="fs-5 fw-medium m-0">4.42%</h6>
-                            </div>
-                            <div class="promotion-bank"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-1.png" class="img-fluid w-20" alt="Bank 1"></div>
-                        </div>
-
+            <!-- Single Promotion -->
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <div class="card rounded-2 p-3 border">
+                    <div class="mortgage-caption mb-3">
+                        <h5 class="fs-5 mb-0">{{ $locale === 'uz' ? 'Ipoteka' : ($locale === 'ru' ? 'Ипотека' : 'Mortgage') }}</h5>
+                        <p>{{ $locale === 'uz' ? 'Maxsus taklif' : ($locale === 'ru' ? 'Специальное предложение' : 'Special offer') }}</p>
                     </div>
-                </div>
-
-                <!-- Single Promotion -->
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                    <div class="card rounded-2 p-3 border">
-
-                        <div class="mortgage-caption mb-3">
-                            <h5 class="fs-5 mb-0">Mortgage</h5>
-                            <p>Special offer for houses in Chicago</p>
+                    <div class="mortgage-footer d-flex align-items-center justify-content-between">
+                        <div class="promotion-rates">
+                            <span class="text-md text-muted">{{ $locale === 'uz' ? 'Foiz' : ($locale === 'ru' ? 'Ставка' : 'Rates') }}</span>
+                            <h6 class="fs-5 fw-medium m-0">4.42%</h6>
                         </div>
-
-                        <div class="mortgage-footer d-flex align-items-center justify-content-between">
-                            <div class="promotion-rates">
-                                <span class="text-md text-muted">Rates</span>
-                                <h6 class="fs-5 fw-medium m-0">4.50%</h6>
-                            </div>
-                            <div class="promotion-bank"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-2.png" class="img-fluid w-20" alt="Bank 1"></div>
+                        <div class="promotion-bank">
+                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-1.png" class="img-fluid w-20" alt="Bank 1">
                         </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Promotion -->
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                    <div class="card rounded-2 p-3 border">
-
-                        <div class="mortgage-caption mb-3">
-                            <h5 class="fs-5 mb-0">Mortgage</h5>
-                            <p>Special offer for houses in Chicago</p>
-                        </div>
-
-                        <div class="mortgage-footer d-flex align-items-center justify-content-between">
-                            <div class="promotion-rates">
-                                <span class="text-md text-muted">Rates</span>
-                                <h6 class="fs-5 fw-medium m-0">7.12%</h6>
-                            </div>
-                            <div class="promotion-bank"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-3.png" class="img-fluid w-20" alt="Bank 1"></div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Promotion -->
-                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
-                    <div class="card rounded-2 p-3 border">
-
-                        <div class="mortgage-caption mb-3">
-                            <h5 class="fs-5 mb-0">Mortgage</h5>
-                            <p>Special offer for houses in Chicago</p>
-                        </div>
-
-                        <div class="mortgage-footer d-flex align-items-center justify-content-between">
-                            <div class="promotion-rates">
-                                <span class="text-md text-muted">Special Discount</span>
-                                <h6 class="fs-5 fw-medium m-0">Up to 7%</h6>
-                            </div>
-                            <div class="promotion-bank"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-4.png" class="img-fluid w-20" alt="Bank 1"></div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </section>
-    <!-- ============================ Popular Promotions End ================================== -->
-
-
-
-    <!-- ============================ Latest Property For Sale Start ================================== -->
-    <section>
-        <div class="container">
-
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-10 text-center">
-                    <div class="tabOptions">
-                        <ul class="nav nav-pills simple-tabs gray-simple mb-4" id="pills-tab" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="pills-sell-tab" data-bs-toggle="pill" data-bs-target="#pills-sell" type="button" role="tab" aria-controls="pills-sell" aria-selected="true">Listing for Sell</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="pills-rent-tab" data-bs-toggle="pill" data-bs-target="#pills-rent" type="button" role="tab" aria-controls="pills-rent" aria-selected="false">Listing for Rent</button>
-                            </li>
-                        </ul>
                     </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-lg-12 col-md-12">
-
-                    <!-- Property for Rent -->
-                    <div class="tab-content" id="pills-tabContent">
-                        <div class="tab-pane fade show active" id="pills-sell" role="tabpanel" aria-labelledby="pills-sell-tab" tabindex="0">
-                            <div class="row align-items-center justify-content-center g-4">
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-1.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">Apartment</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Green Canton Chrysler</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">4BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1800 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$235.8M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-2.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">House</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Purple Flatiron House</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2200 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$285.8M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                    <div class="label new-listing d-inline-flex align-items-center justify-content-center ms-1">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M19.0647 5.43757C19.3421 5.43757 19.567 5.21271 19.567 4.93534C19.567 4.65796 19.3421 4.43311 19.0647 4.43311C18.7874 4.43311 18.5625 4.65796 18.5625 4.93534C18.5625 5.21271 18.7874 5.43757 19.0647 5.43757Z" fill="currentColor"/>
-																		<path d="M20.0692 9.48884C20.3466 9.48884 20.5714 9.26398 20.5714 8.98661C20.5714 8.70923 20.3466 8.48438 20.0692 8.48438C19.7918 8.48438 19.567 8.70923 19.567 8.98661C19.567 9.26398 19.7918 9.48884 20.0692 9.48884Z" fill="currentColor"/>
-																		<path d="M12.0335 20.5714C15.6943 20.5714 18.9426 18.2053 20.1168 14.7338C20.1884 14.5225 20.1114 14.289 19.9284 14.161C19.746 14.034 19.5003 14.0418 19.3257 14.1821C18.2432 15.0546 16.9371 15.5156 15.5491 15.5156C12.2257 15.5156 9.48884 12.8122 9.48884 9.48886C9.48884 7.41079 10.5773 5.47137 12.3449 4.35752C12.5342 4.23832 12.6 4.00733 12.5377 3.79251C12.4759 3.57768 12.2571 3.42859 12.0335 3.42859C7.32556 3.42859 3.42857 7.29209 3.42857 12C3.42857 16.7079 7.32556 20.5714 12.0335 20.5714Z" fill="currentColor"/>
-																		<path d="M13.0379 7.47998C13.8688 7.47998 14.5446 8.15585 14.5446 8.98668C14.5446 9.26428 14.7693 9.48891 15.0469 9.48891C15.3245 9.48891 15.5491 9.26428 15.5491 8.98668C15.5491 8.15585 16.225 7.47998 17.0558 7.47998C17.3334 7.47998 17.558 7.25535 17.558 6.97775C17.558 6.70015 17.3334 6.47552 17.0558 6.47552C16.225 6.47552 15.5491 5.76616 15.5491 4.93534C15.5491 4.65774 15.3245 4.43311 15.0469 4.43311C14.7693 4.43311 14.5446 4.65774 14.5446 4.93534C14.5446 5.76616 13.8688 6.47552 13.0379 6.47552C12.7603 6.47552 12.5357 6.70015 12.5357 6.97775C12.5357 7.25535 12.7603 7.47998 13.0379 7.47998Z" fill="currentColor"/>
-																	</svg>
-																</span>New
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-3.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">Building</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Rustic Reunion Tower</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">2 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2500 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$850M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-4.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">Condos</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Red Freedom Tower</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">4BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">4 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1900 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$620.5M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                    <div class="label new-listing d-inline-flex align-items-center justify-content-center ms-1">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M19.0647 5.43757C19.3421 5.43757 19.567 5.21271 19.567 4.93534C19.567 4.65796 19.3421 4.43311 19.0647 4.43311C18.7874 4.43311 18.5625 4.65796 18.5625 4.93534C18.5625 5.21271 18.7874 5.43757 19.0647 5.43757Z" fill="currentColor"/>
-																		<path d="M20.0692 9.48884C20.3466 9.48884 20.5714 9.26398 20.5714 8.98661C20.5714 8.70923 20.3466 8.48438 20.0692 8.48438C19.7918 8.48438 19.567 8.70923 19.567 8.98661C19.567 9.26398 19.7918 9.48884 20.0692 9.48884Z" fill="currentColor"/>
-																		<path d="M12.0335 20.5714C15.6943 20.5714 18.9426 18.2053 20.1168 14.7338C20.1884 14.5225 20.1114 14.289 19.9284 14.161C19.746 14.034 19.5003 14.0418 19.3257 14.1821C18.2432 15.0546 16.9371 15.5156 15.5491 15.5156C12.2257 15.5156 9.48884 12.8122 9.48884 9.48886C9.48884 7.41079 10.5773 5.47137 12.3449 4.35752C12.5342 4.23832 12.6 4.00733 12.5377 3.79251C12.4759 3.57768 12.2571 3.42859 12.0335 3.42859C7.32556 3.42859 3.42857 7.29209 3.42857 12C3.42857 16.7079 7.32556 20.5714 12.0335 20.5714Z" fill="currentColor"/>
-																		<path d="M13.0379 7.47998C13.8688 7.47998 14.5446 8.15585 14.5446 8.98668C14.5446 9.26428 14.7693 9.48891 15.0469 9.48891C15.3245 9.48891 15.5491 9.26428 15.5491 8.98668C15.5491 8.15585 16.225 7.47998 17.0558 7.47998C17.3334 7.47998 17.558 7.25535 17.558 6.97775C17.558 6.70015 17.3334 6.47552 17.0558 6.47552C16.225 6.47552 15.5491 5.76616 15.5491 4.93534C15.5491 4.65774 15.3245 4.43311 15.0469 4.43311C14.7693 4.43311 14.5446 4.65774 14.5446 4.93534C14.5446 5.76616 13.8688 6.47552 13.0379 6.47552C12.7603 6.47552 12.5357 6.70015 12.5357 6.97775C12.5357 7.25535 12.7603 7.47998 13.0379 7.47998Z" fill="currentColor"/>
-																	</svg>
-																</span>New
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-5.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">Villa</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Donald Dwelling</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">2BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">2 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2000 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$360.5M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class=" position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-6.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-sale prt-type me-2">For Sell</span><span class="label property-type property-cats">Building</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Red Tiny Hearst Castle</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1700 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$290.8M</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
+            <!-- Single Promotion -->
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <div class="card rounded-2 p-3 border">
+                    <div class="mortgage-caption mb-3">
+                        <h5 class="fs-5 mb-0">{{ $locale === 'uz' ? 'Ipoteka' : ($locale === 'ru' ? 'Ипотека' : 'Mortgage') }}</h5>
+                        <p>{{ $locale === 'uz' ? 'Maxsus taklif' : ($locale === 'ru' ? 'Специальное предложение' : 'Special offer') }}</p>
+                    </div>
+                    <div class="mortgage-footer d-flex align-items-center justify-content-between">
+                        <div class="promotion-rates">
+                            <span class="text-md text-muted">{{ $locale === 'uz' ? 'Foiz' : ($locale === 'ru' ? 'Ставка' : 'Rates') }}</span>
+                            <h6 class="fs-5 fw-medium m-0">4.50%</h6>
                         </div>
-
-                        <!-- Property for Sale -->
-                        <div class="tab-pane fade" id="pills-rent" role="tabpanel" aria-labelledby="pills-rent-tab" tabindex="0">
-                            <div class="row align-items-center justify-content-center g-4">
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-13.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">Apartment</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Green Canton Chrysler</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">4BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1800 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$80,000</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-14.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">House</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Purple Flatiron House</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2200 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$67,000</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                    <div class="label new-listing d-inline-flex align-items-center justify-content-center ms-1">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M19.0647 5.43757C19.3421 5.43757 19.567 5.21271 19.567 4.93534C19.567 4.65796 19.3421 4.43311 19.0647 4.43311C18.7874 4.43311 18.5625 4.65796 18.5625 4.93534C18.5625 5.21271 18.7874 5.43757 19.0647 5.43757Z" fill="currentColor"/>
-																		<path d="M20.0692 9.48884C20.3466 9.48884 20.5714 9.26398 20.5714 8.98661C20.5714 8.70923 20.3466 8.48438 20.0692 8.48438C19.7918 8.48438 19.567 8.70923 19.567 8.98661C19.567 9.26398 19.7918 9.48884 20.0692 9.48884Z" fill="currentColor"/>
-																		<path d="M12.0335 20.5714C15.6943 20.5714 18.9426 18.2053 20.1168 14.7338C20.1884 14.5225 20.1114 14.289 19.9284 14.161C19.746 14.034 19.5003 14.0418 19.3257 14.1821C18.2432 15.0546 16.9371 15.5156 15.5491 15.5156C12.2257 15.5156 9.48884 12.8122 9.48884 9.48886C9.48884 7.41079 10.5773 5.47137 12.3449 4.35752C12.5342 4.23832 12.6 4.00733 12.5377 3.79251C12.4759 3.57768 12.2571 3.42859 12.0335 3.42859C7.32556 3.42859 3.42857 7.29209 3.42857 12C3.42857 16.7079 7.32556 20.5714 12.0335 20.5714Z" fill="currentColor"/>
-																		<path d="M13.0379 7.47998C13.8688 7.47998 14.5446 8.15585 14.5446 8.98668C14.5446 9.26428 14.7693 9.48891 15.0469 9.48891C15.3245 9.48891 15.5491 9.26428 15.5491 8.98668C15.5491 8.15585 16.225 7.47998 17.0558 7.47998C17.3334 7.47998 17.558 7.25535 17.558 6.97775C17.558 6.70015 17.3334 6.47552 17.0558 6.47552C16.225 6.47552 15.5491 5.76616 15.5491 4.93534C15.5491 4.65774 15.3245 4.43311 15.0469 4.43311C14.7693 4.43311 14.5446 4.65774 14.5446 4.93534C14.5446 5.76616 13.8688 6.47552 13.0379 6.47552C12.7603 6.47552 12.5357 6.70015 12.5357 6.97775C12.5357 7.25535 12.7603 7.47998 13.0379 7.47998Z" fill="currentColor"/>
-																	</svg>
-																</span>New
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-15.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">Building</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Rustic Reunion Tower</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">2 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2500 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$92,500</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-16.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">Condos</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Red Freedom Tower</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">4BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">4 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1900 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$89,000</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
-																		<path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
-																	</svg>
-																</span>Verified
-                                                    </div>
-                                                    <div class="label new-listing d-inline-flex align-items-center justify-content-center ms-1">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M19.0647 5.43757C19.3421 5.43757 19.567 5.21271 19.567 4.93534C19.567 4.65796 19.3421 4.43311 19.0647 4.43311C18.7874 4.43311 18.5625 4.65796 18.5625 4.93534C18.5625 5.21271 18.7874 5.43757 19.0647 5.43757Z" fill="currentColor"/>
-																		<path d="M20.0692 9.48884C20.3466 9.48884 20.5714 9.26398 20.5714 8.98661C20.5714 8.70923 20.3466 8.48438 20.0692 8.48438C19.7918 8.48438 19.567 8.70923 19.567 8.98661C19.567 9.26398 19.7918 9.48884 20.0692 9.48884Z" fill="currentColor"/>
-																		<path d="M12.0335 20.5714C15.6943 20.5714 18.9426 18.2053 20.1168 14.7338C20.1884 14.5225 20.1114 14.289 19.9284 14.161C19.746 14.034 19.5003 14.0418 19.3257 14.1821C18.2432 15.0546 16.9371 15.5156 15.5491 15.5156C12.2257 15.5156 9.48884 12.8122 9.48884 9.48886C9.48884 7.41079 10.5773 5.47137 12.3449 4.35752C12.5342 4.23832 12.6 4.00733 12.5377 3.79251C12.4759 3.57768 12.2571 3.42859 12.0335 3.42859C7.32556 3.42859 3.42857 7.29209 3.42857 12C3.42857 16.7079 7.32556 20.5714 12.0335 20.5714Z" fill="currentColor"/>
-																		<path d="M13.0379 7.47998C13.8688 7.47998 14.5446 8.15585 14.5446 8.98668C14.5446 9.26428 14.7693 9.48891 15.0469 9.48891C15.3245 9.48891 15.5491 9.26428 15.5491 8.98668C15.5491 8.15585 16.225 7.47998 17.0558 7.47998C17.3334 7.47998 17.558 7.25535 17.558 6.97775C17.558 6.70015 17.3334 6.47552 17.0558 6.47552C16.225 6.47552 15.5491 5.76616 15.5491 4.93534C15.5491 4.65774 15.3245 4.43311 15.0469 4.43311C14.7693 4.43311 14.5446 4.65774 14.5446 4.93534C14.5446 5.76616 13.8688 6.47552 13.0379 6.47552C12.7603 6.47552 12.5357 6.70015 12.5357 6.97775C12.5357 7.25535 12.7603 7.47998 13.0379 7.47998Z" fill="currentColor"/>
-																	</svg>
-																</span>New
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-18.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">Villa</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">The Donald Dwelling</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">2BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">2 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">2000 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$88,000</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-
-                                <!-- Single Property -->
-                                <div class="col-xl-4 col-lg-4 col-md-6">
-                                    <div class="property-listing card border rounded-3">
-
-                                        <div class="listing-img-wrapper p-3">
-                                            <div class="list-img-slide position-relative">
-                                                <div class=" position-absolute top-0 left-0 ms-3 mt-3 z-1">
-                                                    <div class="label super-agent d-inline-flex align-items-center justify-content-center">
-																<span class="svg-icon text-light svg-icon-2hx me-1">
-																	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"/>
-																		<path d="M12.0006 11.1542C13.1434 11.1542 14.0777 10.22 14.0777 9.0771C14.0777 7.93424 13.1434 7 12.0006 7C10.8577 7 9.92348 7.93424 9.92348 9.0771C9.92348 10.22 10.8577 11.1542 12.0006 11.1542Z" fill="currentColor"/>
-																		<path d="M15.5652 13.814C15.5108 13.6779 15.4382 13.551 15.3566 13.4331C14.9393 12.8163 14.2954 12.4081 13.5697 12.3083C13.479 12.2993 13.3793 12.3174 13.3067 12.3718C12.9257 12.653 12.4722 12.7981 12.0006 12.7981C11.5289 12.7981 11.0754 12.653 10.6944 12.3718C10.6219 12.3174 10.5221 12.2902 10.4314 12.3083C9.70578 12.4081 9.05272 12.8163 8.64456 13.4331C8.56293 13.551 8.49036 13.687 8.43595 13.814C8.40875 13.8684 8.41781 13.9319 8.44502 13.9864C8.51759 14.1133 8.60828 14.2403 8.68991 14.3492C8.81689 14.5215 8.95295 14.6757 9.10715 14.8208C9.23413 14.9478 9.37925 15.0657 9.52439 15.1836C10.2409 15.7188 11.1026 15.9999 11.9915 15.9999C12.8804 15.9999 13.7421 15.7188 14.4586 15.1836C14.6038 15.0748 14.7489 14.9478 14.8759 14.8208C15.021 14.6757 15.1661 14.5215 15.2931 14.3492C15.3838 14.2312 15.4655 14.1133 15.538 13.9864C15.5833 13.9319 15.5924 13.8684 15.5652 13.814Z" fill="currentColor"/>
-																	</svg>
-																</span>SuperAgent
-                                                    </div>
-                                                </div>
-                                                <div class="clicks rounded-3 overflow-hidden mb-0">
-                                                    <a href="single-property-1.html"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-10.jpg" class="img-fluid" alt="" /></a>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="listing-caption-wrapper px-3">
-                                            <div class="listing-detail-wrapper">
-                                                <div class="listing-short-detail-wrap">
-                                                    <div class="listing-short-detail">
-                                                        <div class="d-flex align-items-center">
-                                                            <span class="label for-rent prt-type me-2">For Rent</span><span class="label property-type property-cats">Building</span>
-                                                        </div>
-                                                        <h4 class="listing-name fw-medium fs-5 mb-1"><a href="single-property-1.html">Red Tiny Hearst Castle</a></h4>
-                                                        <div class="prt-location text-muted-2">
-																	<span class="svg-icon svg-icon-2hx">
-																		<svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																			<path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
-																			<path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
-																		</svg>
-																	</span>
-                                                            210 Zirak Road, Canada
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="price-features-wrapper">
-                                                <div class="list-fx-features d-flex align-items-center justify-content-between">
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">3BHK</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">3 Beds</span>
-                                                    </div>
-                                                    <div class="listing-card d-flex align-items-center">
-                                                        <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">1700 SQFT</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
-                                                <div class="listing-short-detail-flex">
-                                                    <h6 class="listing-card-info-price m-0">$55,000</h6>
-                                                </div>
-                                                <div class="footer-flex">
-                                                    <a href="property-detail.html" class="prt-view">
-																<span class="svg-icon text-main svg-icon-2hx">
-																	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-																		<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
-																		<path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
-																	</svg>
-																</span>
-                                                    </a>
-                                                </div>
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="promotion-bank">
+                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-2.png" class="img-fluid w-20" alt="Bank 2">
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Single Promotion -->
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <div class="card rounded-2 p-3 border">
+                    <div class="mortgage-caption mb-3">
+                        <h5 class="fs-5 mb-0">{{ $locale === 'uz' ? 'Ipoteka' : ($locale === 'ru' ? 'Ипотека' : 'Mortgage') }}</h5>
+                        <p>{{ $locale === 'uz' ? 'Maxsus taklif' : ($locale === 'ru' ? 'Специальное предложение' : 'Special offer') }}</p>
+                    </div>
+                    <div class="mortgage-footer d-flex align-items-center justify-content-between">
+                        <div class="promotion-rates">
+                            <span class="text-md text-muted">{{ $locale === 'uz' ? 'Foiz' : ($locale === 'ru' ? 'Ставка' : 'Rates') }}</span>
+                            <h6 class="fs-5 fw-medium m-0">7.12%</h6>
+                        </div>
+                        <div class="promotion-bank">
+                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-3.png" class="img-fluid w-20" alt="Bank 3">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single Promotion -->
+            <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                <div class="card rounded-2 p-3 border">
+                    <div class="mortgage-caption mb-3">
+                        <h5 class="fs-5 mb-0">{{ $locale === 'uz' ? 'Ipoteka' : ($locale === 'ru' ? 'Ипотека' : 'Mortgage') }}</h5>
+                        <p>{{ $locale === 'uz' ? 'Maxsus taklif' : ($locale === 'ru' ? 'Специальное предложение' : 'Special offer') }}</p>
+                    </div>
+                    <div class="mortgage-footer d-flex align-items-center justify-content-between">
+                        <div class="promotion-rates">
+                            <span class="text-md text-muted">{{ $locale === 'uz' ? 'Chegirma' : ($locale === 'ru' ? 'Скидка' : 'Special Discount') }}</span>
+                            <h6 class="fs-5 fw-medium m-0">{{ $locale === 'uz' ? '7% gacha' : ($locale === 'ru' ? 'До 7%' : 'Up to 7%') }}</h6>
+                        </div>
+                        <div class="promotion-bank">
+                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/bank-4.png" class="img-fluid w-20" alt="Bank 4">
+                        </div>
                     </div>
                 </div>
             </div>
 
         </div>
-    </section>
-    <!-- ============================ Latest Property For Sale End ================================== -->
 
-    <!-- ============================ All Property ================================== -->
-    <section class="bg-light">
-        <div class="container">
+    </div>
+</section>
+<!-- ============================ Popular Promotions End ================================== -->
 
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-10 text-center">
-                    <div class="sec-heading center">
-                        <h2>Featured Property For Sale</h2>
-                        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores</p>
-                    </div>
+<!-- ============================ Popular New Buildings Start ================================== -->
+@if($featuredDevelopments->count() > 0 || $latestDevelopments->count() > 0)
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-7 col-md-10 text-center">
+                <div class="sec-heading center">
+                    <h2 class="mb-2" style="font-size: 36px; font-weight: 700; color: #333;">{{ $locale === 'uz' ? 'Mashhur yangi binolar' : ($locale === 'ru' ? 'Популярные новостройки' : 'Popular New Buildings') }}</h2>
+                    <p class="text-muted">{{ $locale === 'uz' ? 'Eng yaxshi yangi loyihalar' : ($locale === 'ru' ? 'Лучшие новые проекты' : 'Best new developments') }}</p>
                 </div>
             </div>
+        </div>
 
-            <div class="row list-layout">
-
-                <!-- Single Property Start -->
-                <div class="col-xl-6 col-lg-6 col-md-12">
-                    <div class="property-listing property-1 bg-white p-2 rounded">
-
-                        <div class="listing-img-wrapper">
-                            <a href="single-property-2.html">
-                                <img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-1.jpg" class="img-fluid mx-auto rounded" alt="" />
+        <div class="row g-4">
+            @php
+                $displayDevelopments = $featuredDevelopments->count() > 0 ? $featuredDevelopments->take(3) : $latestDevelopments->take(3);
+            @endphp
+            
+            @foreach($displayDevelopments as $development)
+            <div class="col-xl-4 col-lg-4 col-md-6">
+                <a href="{{ route('single.development', ['locale' => $locale, 'slug' => $development->slug]) }}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden h-100 development-card" style="transition: transform 0.3s, box-shadow 0.3s;">
+                    <div class="position-relative" style="height: 250px; overflow: hidden;">
+                        @php
+                            $devImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop';
+                            if ($development->featured_image) {
+                                $devImage = asset('storage/' . $development->featured_image);
+                            } elseif ($development->images && is_array($development->images) && count($development->images) > 0) {
+                                $firstImage = is_array($development->images[0]) ? ($development->images[0]['path'] ?? $development->images[0]) : $development->images[0];
+                                $devImage = asset('storage/' . $firstImage);
+                            }
+                            
+                            $devTitle = $development->{'title_' . $locale} ?? $development->title_uz ?? 'Development';
+                            $devLocation = ($development->city ?? '') . ($development->region ? ', ' . $development->region : '');
+                            
+                            $builderName = $development->{'developer_name_' . $locale} ?? $development->developer_name_uz ?? ($development->builder ? $development->builder->name : 'Builder');
+                            $builderAvatar = null;
+                            if ($development->builder && $development->builder->avatar) {
+                                $builderAvatar = asset('storage/' . $development->builder->avatar);
+                            } else {
+                                $builderAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($builderName) . '&background=0987f5&color=fff&size=48&bold=true';
+                            }
+                        @endphp
+                        
+                        <img src="{{ $devImage }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ $devTitle }}">
+                        
+                        <div class="position-absolute top-0 start-0 m-3">
+                            @if($development->installment_available)
+                            <span class="badge rounded-pill px-3 py-2" style="background: rgba(0,0,0,0.7); color: white; font-weight: 600;">
+                                {{ $locale === 'uz' ? 'Рассрочка' : ($locale === 'ru' ? 'Рассрочка' : 'Installment') }}
+                            </span>
+                            @endif
+                        </div>
+                        
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <button class="btn btn-sm rounded-circle" style="background: rgba(255,255,255,0.9); width: 36px; height: 36px; padding: 0; border: none;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#0987f5"/>
+                                </svg>
+                            </button>
+                        </div>
+                        
+                        @if($development->cashback_percentage || $development->discount_percentage)
+                        <div class="position-absolute bottom-0 start-0 end-0 p-3" style="background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);">
+                            <div class="d-flex gap-2 flex-wrap">
+                                @if($development->cashback_percentage)
+                                <span class="badge rounded-pill px-3 py-1" style="background: #0987f5; color: white; font-weight: 600;">
+                                    {{ $locale === 'uz' ? 'Кешбек' : ($locale === 'ru' ? 'Кешбек' : 'Cashback') }} {{ $development->cashback_percentage }}%
+                                </span>
+                                @endif
+                                @if($development->discount_percentage)
+                                <span class="badge rounded-pill px-3 py-1" style="background: #dc3545; color: white; font-weight: 600;">
+                                    -{{ $development->discount_percentage }}%
+                                </span>
+                                @endif
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-2">
+                            <img src="{{ $builderAvatar }}" class="rounded-circle me-2" style="width: 28px; height: 28px; object-fit: cover; border: 2px solid rgba(9,135,245,0.2);" alt="{{ $builderName }}">
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="fw-semibold" style="font-size: 14px; color: #333;">{{ $builderName }}</span>
+                                    @if($development->builder && $development->builder->verified)
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#0987f5"/>
+                                    </svg>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h5 class="fw-bold mb-2" style="color: #333; font-size: 18px;">
+                            {{ $devTitle }}
+                        </h5>
+                        
+                        <div class="d-flex align-items-center text-muted mb-3" style="font-size: 14px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-1">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+                            </svg>
+                            {{ $devLocation }}
+                        </div>
+                        
+                        @php
+                            $minPrice = $development->price_from ?? 0;
+                            $pricePerSqm = $development->price_per_sqm ?? 0;
+                            if ($development->properties && $development->properties->count() > 0) {
+                                $minPriceProp = $development->properties->whereNotNull('price_from')->min('price_from');
+                                if ($minPriceProp) $minPrice = $minPriceProp;
+                            }
+                        @endphp
+                        
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                @if($minPrice > 0)
+                                <div class="fw-bold" style="color: #0987f5; font-size: 20px;">
+                                    {{ number_format($minPrice, 0, '.', ' ') }} {{ $development->currency ?? 'UZS' }}
+                                </div>
+                                @endif
+                                @if($pricePerSqm > 0)
+                                <div class="text-muted" style="font-size: 12px;">
+                                    {{ number_format($pricePerSqm, 0, '.', ' ') }} {{ $development->currency ?? 'UZS' }}/м²
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2" onclick="event.stopPropagation();">
+                            <a href="{{ route('single.development', ['locale' => $locale, 'slug' => $development->slug]) }}" class="btn btn-sm flex-grow-1" style="background: #0987f5; color: white; border: none; font-weight: 600;">
+                                {{ $locale === 'uz' ? 'Konsultatsiya' : ($locale === 'ru' ? 'Консультация' : 'Consultation') }}
+                            </a>
+                            <a href="tel:+998781136350" class="btn btn-sm" style="background: white; color: #0987f5; border: 2px solid #0987f5; font-weight: 600; min-width: 50px;" onclick="event.stopPropagation();">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="currentColor"/>
+                                </svg>
                             </a>
                         </div>
-
-                        <div class="listing-content">
-
-                            <div class="listing-detail-wrapper-box">
-                                <div class="listing-detail-wrapper d-flex align-items-center justify-content-between">
-                                    <div class="listing-short-detail">
-                                        <span class="label for-sale d-inline-flex mb-1">For Sale</span>
-                                        <h4 class="listing-name mb-0"><a href="single-property-2.html">Adobe Property Advisors</a></h4>
-                                        <div class="fr-can-rating">
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs"></i>
-                                            <span class="reviews_text fs-sm text-muted ms-2">(42 Reviews)</span>
-                                        </div>
-
-                                    </div>
-                                    <div class="list-price">
-                                        <h6 class="listing-card-info-price text-main">$120M</h6>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="price-features-wrapper">
-                                <div class="list-fx-features d-flex align-items-center justify-content-between mt-3 mb-1">
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-building-shield fs-xs"></i></div><span class="text-muted-2 fs-sm">3BHK</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-bed fs-xs"></i></div><span class="text-muted-2 fs-sm">3 Beds</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-clone fs-xs"></i></div><span class="text-muted-2 fs-sm">1800 SQFT</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="listing-footer-wrapper">
-                                <div class="listing-locate">
-                                    <span class="listing-location text-muted-2"><i class="fa-solid fa-location-pin me-1"></i>Quice Market, Canada</span>
-                                </div>
-                                <div class="listing-detail-btn">
-                                    <a href="single-property-2.html" class="btn btn-sm px-4 fw-medium btn-main">View</a>
-                                </div>
-                            </div>
-
-                        </div>
-
                     </div>
                 </div>
-                <!-- Single Property End -->
-
-                <!-- Single Property Start -->
-                <div class="col-xl-6 col-lg-6 col-md-12">
-                    <div class="property-listing property-1 bg-white p-2 rounded">
-
-                        <div class="listing-img-wrapper">
-                            <a href="single-property-2.html">
-                                <img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-2.jpg" class="img-fluid mx-auto rounded" alt="" />
-                            </a>
-                        </div>
-
-                        <div class="listing-content">
-
-                            <div class="listing-detail-wrapper-box">
-                                <div class="listing-detail-wrapper d-flex align-items-center justify-content-between">
-                                    <div class="listing-short-detail">
-                                        <span class="label for-sale d-inline-flex mb-1">For Sale</span>
-                                        <h4 class="listing-name mb-0"><a href="single-property-2.html">Agile Real Estate Group</a></h4>
-                                        <div class="fr-can-rating">
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs"></i>
-                                            <span class="reviews_text fs-sm text-muted ms-2">(34 Reviews)</span>
-                                        </div>
-
-                                    </div>
-                                    <div class="list-price">
-                                        <h6 class="listing-card-info-price text-main">$132M</h6>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="price-features-wrapper">
-                                <div class="list-fx-features d-flex align-items-center justify-content-between mt-3 mb-1">
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-building-shield fs-xs"></i></div><span class="text-muted-2 fs-sm">3BHK</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-bed fs-xs"></i></div><span class="text-muted-2 fs-sm">3 Beds</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-clone fs-xs"></i></div><span class="text-muted-2 fs-sm">1800 SQFT</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="listing-footer-wrapper">
-                                <div class="listing-locate">
-                                    <span class="listing-location text-muted-2"><i class="fa-solid fa-location-pin me-1"></i>Quice Market, Canada</span>
-                                </div>
-                                <div class="listing-detail-btn">
-                                    <a href="single-property-2.html" class="btn btn-sm px-4 fw-medium btn-main">View</a>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-                <!-- Single Property End -->
-
-                <!-- Single Property Start -->
-                <div class="col-xl-6 col-lg-6 col-md-12">
-                    <div class="property-listing property-1 bg-white p-2 rounded">
-
-                        <div class="listing-img-wrapper">
-                            <a href="single-property-2.html">
-                                <img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-3.jpg" class="img-fluid mx-auto rounded" alt="" />
-                            </a>
-                        </div>
-
-                        <div class="listing-content">
-
-                            <div class="listing-detail-wrapper-box">
-                                <div class="listing-detail-wrapper d-flex align-items-center justify-content-between">
-                                    <div class="listing-short-detail">
-                                        <span class="label for-sale d-inline-flex mb-1">For Sale</span>
-                                        <h4 class="listing-name mb-0"><a href="single-property-2.html">Bluebell Real Estate</a></h4>
-                                        <div class="fr-can-rating">
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs"></i>
-                                            <span class="reviews_text fs-sm text-muted ms-2">(124 Reviews)</span>
-                                        </div>
-
-                                    </div>
-                                    <div class="list-price">
-                                        <h6 class="listing-card-info-price text-main">$127M</h6>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="price-features-wrapper">
-                                <div class="list-fx-features d-flex align-items-center justify-content-between mt-3 mb-1">
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-building-shield fs-xs"></i></div><span class="text-muted-2 fs-sm">3BHK</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-bed fs-xs"></i></div><span class="text-muted-2 fs-sm">3 Beds</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-clone fs-xs"></i></div><span class="text-muted-2 fs-sm">1800 SQFT</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="listing-footer-wrapper">
-                                <div class="listing-locate">
-                                    <span class="listing-location text-muted-2"><i class="fa-solid fa-location-pin me-1"></i>Quice Market, Canada</span>
-                                </div>
-                                <div class="listing-detail-btn">
-                                    <a href="single-property-2.html" class="btn btn-sm px-4 fw-medium btn-main">View</a>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-                <!-- Single Property End -->
-
-                <!-- Single Property Start -->
-                <div class="col-xl-6 col-lg-6 col-md-12">
-                    <div class="property-listing property-1 bg-white p-2 rounded">
-
-                        <div class="listing-img-wrapper">
-                            <a href="single-property-2.html">
-                                <img src="https://shreethemes.net/resido-2.3/resido/assets/img/p-4.jpg" class="img-fluid mx-auto rounded" alt="" />
-                            </a>
-                        </div>
-
-                        <div class="listing-content">
-
-                            <div class="listing-detail-wrapper-box">
-                                <div class="listing-detail-wrapper d-flex align-items-center justify-content-between">
-                                    <div class="listing-short-detail">
-                                        <span class="label for-sale d-inline-flex mb-1">For Sale</span>
-                                        <h4 class="listing-name mb-0"><a href="single-property-2.html">Strive Partners Realty</a></h4>
-                                        <div class="fr-can-rating">
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <i class="fas fa-star fs-xs filled"></i>
-                                            <span class="reviews_text fs-sm text-muted ms-2">(56 Reviews)</span>
-                                        </div>
-
-                                    </div>
-                                    <div class="list-price">
-                                        <h6 class="listing-card-info-price text-main">$132M</h6>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="price-features-wrapper">
-                                <div class="list-fx-features d-flex align-items-center justify-content-between mt-3 mb-1">
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-building-shield fs-xs"></i></div><span class="text-muted-2 fs-sm">3BHK</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-bed fs-xs"></i></div><span class="text-muted-2 fs-sm">3 Beds</span>
-                                    </div>
-                                    <div class="listing-card d-flex align-items-center">
-                                        <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-clone fs-xs"></i></div><span class="text-muted-2 fs-sm">1800 SQFT</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="listing-footer-wrapper">
-                                <div class="listing-locate">
-                                    <span class="listing-location text-muted-2"><i class="fa-solid fa-location-pin me-1"></i>Quice Market, Canada</span>
-                                </div>
-                                <div class="listing-detail-btn">
-                                    <a href="single-property-2.html" class="btn btn-sm px-4 fw-medium btn-main">View</a>
-                                </div>
-                            </div>
-
-                        </div>
-
-                    </div>
-                </div>
-                <!-- Single Property End -->
-
+                </a>
             </div>
-
-            <!-- Pagination -->
-            <div class="row">
-                <div class="col-lg-12 col-md-12 col-sm-12 text-center mt-4">
-                    <a href="listings-list-with-sidebar.html" class="btn btn-main px-lg-5 rounded">Browse More Properties</a>
-                </div>
-            </div>
-
+            @endforeach
         </div>
-    </section>
-    <!-- ============================ All Featured Property ================================== -->
-
-    <!-- ============================ Explore Featured Agents Start ================================== -->
-    <section>
-        <div class="container">
-
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-10 text-center">
-                    <div class="sec-heading center">
-                        <h2>Explore Featured Agents</h2>
-                        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row justify-content-center g-4">
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-1.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.8</span>
-                                        <span class="text-muted fw-medium text-sm">(1.12k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">James N. Green</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>San Francisco</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-
-                        <div class="superAgent position-absolute top-0 end-0 mt-3 me-3">
-                            <div class="d-flex align-items-end justify-content-end gap-2">
-                                <span class="label rounded-pill bg-green">Super Agent</span>
-                            </div>
-                        </div>
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-1.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.9</span>
-                                        <span class="text-muted fw-medium text-sm">(1.62k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Seema Gauranki</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>San Diego</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-1.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.7</span>
-                                        <span class="text-muted fw-medium text-sm">(2.14k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Adam Walcorn</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>San Antonio</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-
-                        <div class="hotAgent position-absolute top-0 end-0 mt-3 me-3">
-                            <div class="d-flex align-items-end justify-content-end gap-2">
-                                <span class="label rounded-pill bg-dark">Hot</span>
-                            </div>
-                        </div>
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-4.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.8</span>
-                                        <span class="text-muted fw-medium text-sm">(1.63k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Jasmin Khatri</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>Los Angeles</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-
-                        <div class="hotAgent position-absolute top-0 end-0 mt-4 me-3">
-                            <div class="d-flex align-items-end justify-content-end gap-2">
-                                <span class="label rounded-pill bg-dark">Hot</span>
-                            </div>
-                        </div>
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-3 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-5.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.9</span>
-                                        <span class="text-muted fw-medium text-sm">(1.35k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Rudra K. Mathan</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>Kansas City</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-6.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.7</span>
-                                        <span class="text-muted fw-medium text-sm">(453)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Niharika Muthurk</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>New Orleans</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-
-                        <div class="superAgent position-absolute top-0 end-0 mt-3 me-3">
-                            <div class="d-flex align-items-end justify-content-end gap-2">
-                                <span class="label rounded-pill bg-green">Super Agent</span>
-                            </div>
-                        </div>
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-4 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-7.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.8</span>
-                                        <span class="text-muted fw-medium text-sm">(1.17k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Grack Chappel</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>Jacksonville</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-                <!-- Single Agent -->
-                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
-                    <div class="agents-grid card rounded-3 shadow p-4">
-                        <div class="agents-grid-wrap mb-4">
-                            <div class="fr-grid-thumb mx-auto text-center mt-3 mb-3">
-                                <a href="agent-page.html" class="d-inline-flex p-1 circle border">
-                                    <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-8.jpg" class="img-fluid circle" width="100" alt="" />
-                                </a>
-                            </div>
-                            <div class="fr-grid-deatil text-center">
-                                <div class="rating-wrap d-block">
-                                    <div class="d-flex align-items-center justify-content-center gap-2">
-                                        <span class="text-warning"><i class="bi bi-star-fill"></i></span>
-                                        <span class="text-dark fw-semibold">4.9</span>
-                                        <span class="text-muted fw-medium text-sm">(2.22k)</span>
-                                    </div>
-                                </div>
-                                <div class="fr-grid-deatil-flex">
-                                    <h5 class="fr-can-name lh-base mb-0"><a href="#">Nikita Rajaswi</a></h5>
-                                    <span class="agent-location text-muted"><i class="bi bi-geo-alt me-2"></i>Long Beach</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="fr-grid-info d-flex align-items-center justify-content-center">
-                            <a href="#" class="btn btn-outline-gray rounded-pill border-2 w-100">View Profile<i class="bi bi-arrow-up-right ms-2"></i></a>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Pagination -->
-            <div class="row">
-                <div class="col-lg-12 col-md-12 col-sm-12 text-center mt-5">
-                    <a href="listings-list-with-sidebar.html" class="btn btn-main px-lg-5 rounded">Explore More Agents</a>
-                </div>
-            </div>
-
+        
+        @if($featuredDevelopments->count() > 3 || $latestDevelopments->count() > 3)
+        <div class="text-center mt-4">
+            <a href="{{ route('page.developments', ['locale' => $locale]) }}" class="btn btn-lg px-5" style="background: #0987f5; color: white; border: none; font-weight: 600; border-radius: 8px;">
+                {{ $locale === 'uz' ? 'Barcha loyihalarni ko\'rish' : ($locale === 'ru' ? 'Смотреть все проекты' : 'View All Developments') }}
+            </a>
         </div>
-    </section>
-    <div class="clearfix"></div>
-    <!-- ============================ Explore Featured Agents End ================================== -->
+        @endif
+    </div>
+</section>
+@endif
+<!-- ============================ Popular New Buildings End ================================== -->
 
+<!-- ============================ Latest Property For Sale Start ================================== -->
+<section>
+    <div class="container">
 
-    <!-- ============================ Smart Testimonials ================================== -->
-    <section class="gray-bg">
-        <div class="container">
-
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-10 text-center">
-                    <div class="sec-heading center">
-                        <h2>Good Reviews by Customers</h2>
-                        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row justify-content-center">
-
-                <div class="col-lg-12 col-md-12">
-
-                    <div class="smart-textimonials smart-center" id="smart-textimonials">
-
-                        <!-- Single Item -->
-                        <div class="item">
-                            <div class="item-box">
-                                <div class="smart-tes-author">
-                                    <div class="st-author-box">
-                                        <div class="st-author-thumb">
-                                            <div class="quotes bg-main"><i class="fa-solid fa-quote-left"></i></div>
-                                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-3.jpg" class="img-fluid" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="smart-tes-content">
-                                    <p>Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken specimens.</p>
-                                </div>
-
-                                <div class="st-author-info">
-                                    <h4 class="st-author-title">Adam Williams</h4>
-                                    <span class="st-author-subtitle">CEO Of Microwoft</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Item -->
-                        <div class="item">
-                            <div class="item-box">
-                                <div class="smart-tes-author">
-                                    <div class="st-author-box">
-                                        <div class="st-author-thumb">
-                                            <div class="quotes bg-danger"><i class="fa-solid fa-quote-left"></i></div>
-                                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-8.jpg" class="img-fluid" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="smart-tes-content">
-                                    <p>Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken specimens.</p>
-                                </div>
-
-                                <div class="st-author-info">
-                                    <h4 class="st-author-title">Retha Deowalim</h4>
-                                    <span class="st-author-subtitle">CEO Of Apple</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Item -->
-                        <div class="item">
-                            <div class="item-box">
-                                <div class="smart-tes-author">
-                                    <div class="st-author-box">
-                                        <div class="st-author-thumb">
-                                            <div class="quotes bg-primary"><i class="fa-solid fa-quote-left"></i></div>
-                                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-4.jpg" class="img-fluid" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="smart-tes-content">
-                                    <p>Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken specimens.</p>
-                                </div>
-
-                                <div class="st-author-info">
-                                    <h4 class="st-author-title">Sam J. Wasim</h4>
-                                    <span class="st-author-subtitle">Pio Founder</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Item -->
-                        <div class="item">
-                            <div class="item-box">
-                                <div class="smart-tes-author">
-                                    <div class="st-author-box">
-                                        <div class="st-author-thumb">
-                                            <div class="quotes bg-success"><i class="fa-solid fa-quote-left"></i></div>
-                                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-5.jpg" class="img-fluid" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="smart-tes-content">
-                                    <p>Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken specimens.</p>
-                                </div>
-
-                                <div class="st-author-info">
-                                    <h4 class="st-author-title">Usan Gulwarm</h4>
-                                    <span class="st-author-subtitle">CEO Of Facewarm</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Item -->
-                        <div class="item">
-                            <div class="item-box">
-                                <div class="smart-tes-author">
-                                    <div class="st-author-box">
-                                        <div class="st-author-thumb">
-                                            <div class="quotes bg-primary"><i class="fa-solid fa-quote-left"></i></div>
-                                            <img src="https://shreethemes.net/resido-2.3/resido/assets/img/user-6.jpg" class="img-fluid" alt="" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="smart-tes-content">
-                                    <p>Cicero famously orated against his political opponent Lucius Sergius Catilina. Occasionally the first Oration against Catiline is taken specimens.</p>
-                                </div>
-
-                                <div class="st-author-info">
-                                    <h4 class="st-author-title">Shilpa Shethy</h4>
-                                    <span class="st-author-subtitle">CEO Of Zapple</span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </section>
-    <!-- ============================ Smart Testimonials End ================================== -->
-
-
-    <!-- ============================ Price Table Start ================================== -->
-    <section>
-        <div class="container">
-
-            <div class="row justify-content-center">
-                <div class="col-lg-7 col-md-10 text-center">
-                    <div class="sec-heading center">
-                        <h2>See our packages</h2>
-                        <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row align-items-center justify-content-center g-lg-4 g-md-3 g-4">
-
-                <!-- Single Package -->
-                <div class="col-xl-4 col-lg-4 col-md-4">
-                    <div class="card border rounded-4 pricing-wrap p-3">
-                        <div class="card-body">
-
-                            <div class="cards-heads mb-3">
-                                <div class="d-flex align-items-center justify-content-between gap-1">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="price-icon"><i class="bi bi-brilliance"></i></div>
-                                        <div class="price-title"><h3 class="m-0">Basic</h3></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="pricing-midds mb-3">
-                                <h2 class="lh-base m-0">$79</h2>
-                                <p class="text-md text-muted">Per user/month. Billed monthly</p>
-                            </div>
-
-                            <div class="pricing-caps py-3">
-                                <div class="list-heading mb-2"><h5 class="fw-normal">For medium-size team</h5></div>
-                                <div class="list-wrap">
-                                    <ul class="p-0">
-                                        <li><span class="check"><i class="bi bi-check"></i></span>5+ Listings</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>Contact With Agent</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>3 Month Validity</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>7x24 Fully Support</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>50GB Space</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="pricing-button">
-                                <a href="#" class="btn btn-dark rounded full-width">Choose Plan</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Single Package -->
-                <div class="col-xl-4 col-lg-4 col-md-4">
-                    <div class="card border rounded-4 pricing-wrap p-3">
-                        <div class="card-body">
-
-                            <div class="cards-heads mb-3">
-                                <div class="d-flex align-items-center justify-content-between gap-1">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="price-icon"><i class="bi bi-gem"></i></div>
-                                        <div class="price-title"><h3 class="m-0">Standard</h3></div>
-                                    </div>
-                                    <div class="mostpopular"><span class="popular">Most Popular</span></div>
-                                </div>
-                            </div>
-
-                            <div class="pricing-midds mb-3">
-                                <h2 class="lh-base m-0">$299</h2>
-                                <p class="text-md text-muted">Per user/month. Billed monthly</p>
-                            </div>
-
-                            <div class="pricing-caps py-3">
-                                <div class="list-heading mb-2"><h5 class="fw-normal">For multi group team</h5></div>
-                                <div class="list-wrap">
-                                    <ul class="p-0">
-                                        <li><span class="check"><i class="bi bi-check"></i></span>5+ Listings</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>Contact With Agent</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>3 Month Validity</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>7x24 Fully Support</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>50GB Space</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="pricing-button">
-                                <a href="#" class="btn btn-main rounded full-width">Choose Plan</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Single Package -->
-                <div class="col-xl-4 col-lg-4 col-md-4">
-                    <div class="card border rounded-4 pricing-wrap p-3">
-                        <div class="card-body">
-
-                            <div class="cards-heads mb-3">
-                                <div class="d-flex align-items-center justify-content-between gap-1">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <div class="price-icon"><i class="bi bi-cup-hot-fill"></i></div>
-                                        <div class="price-title"><h3 class="m-0">Enterprizes</h3></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="pricing-midds mb-3">
-                                <h2 class="lh-base m-0">$799</h2>
-                                <p class="text-md text-muted">For large industries and team.</p>
-                            </div>
-
-                            <div class="pricing-caps py-3">
-                                <div class="list-heading mb-2"><h5 class="fw-normal">For large-size team</h5></div>
-                                <div class="list-wrap">
-                                    <ul class="p-0">
-                                        <li><span class="check"><i class="bi bi-check"></i></span>5+ Listings</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>Contact With Agent</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>3 Month Validity</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>7x24 Fully Support</li>
-                                        <li><span class="check"><i class="bi bi-check"></i></span>50GB Space</li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="pricing-button">
-                                <a href="#" class="btn btn-dark rounded full-width">Choose Plan</a>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </section>
-    <!-- ============================ Price Table End ================================== -->
-
-    <!-- ========================== Download App Section =============================== -->
-    <section class="bg-light">
-        <div class="container">
-            <div class="row align-items-center">
-
-                <div class="col-lg-7 col-md-12 col-sm-12 content-column">
-                    <div class="content_block_2">
-                        <div class="content-box">
-                            <div class="sec-title light">
-                                <p class="d-inline-flex align-items-center justify-content-center label bg-main text-light">Download apps</p>
-                                <h2 class="fs-1 lh-base">Download App Free App For Android and iPhone</h2>
-                            </div>
-                            <div class="text">
-                                <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto accusantium.</p>
-                            </div>
-                            <div class="btn-box clearfix mt-5">
-                                <a href="index.html" class="download-btn play-store">
-                                    <i class="fab fa-google-play"></i>
-                                    <span>Download on</span>
-                                    <h3>Google Play</h3>
-                                </a>
-
-                                <a href="index.html" class="download-btn app-store">
-                                    <i class="fab fa-apple"></i>
-                                    <span>Download on</span>
-                                    <h3>App Store</h3>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-5 col-md-12 col-sm-12 image-column">
-                    <div class="image-box">
-                        <figure class="image"><img src="https://shreethemes.net/resido-2.3/resido/assets/img/app.png" class="img-fluid" alt=""></figure>
-                    </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-10 text-center">
+                <div class="tabOptions">
+                    <ul class="nav nav-pills simple-tabs gray-simple mb-4" id="pills-tab" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="pills-sell-tab" data-bs-toggle="pill" data-bs-target="#pills-sell" type="button" role="tab" aria-controls="pills-sell" aria-selected="true">{{ $locale === 'uz' ? 'Sotuvga' : ($locale === 'ru' ? 'На продажу' : 'Listing for Sell') }}</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="pills-rent-tab" data-bs-toggle="pill" data-bs-target="#pills-rent" type="button" role="tab" aria-controls="pills-rent" aria-selected="false">{{ $locale === 'uz' ? 'Ijara uchun' : ($locale === 'ru' ? 'На аренду' : 'Listing for Rent') }}</button>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </div>
-    </section>
-    <!-- ========================== Download App Section =============================== -->
 
-    <!-- ============================ Call To Action ================================== -->
-    <section class="bg-main call-to-act-wrap">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12">
+        <div class="row">
+            <div class="col-lg-12 col-md-12">
 
-                    <div class="call-to-act">
-                        <div class="call-to-act-head">
-                            <h3>Want to Become a Real Estate Agent?</h3>
-                            <span>We'll help you to grow your career and growth.</span>
+                <!-- Property for Sale/Rent -->
+                <div class="tab-content" id="pills-tabContent">
+                    <div class="tab-pane fade show active" id="pills-sell" role="tabpanel" aria-labelledby="pills-sell-tab" tabindex="0">
+                        <div class="row align-items-center justify-content-center g-4">
+
+                            @forelse($saleProperties as $property)
+                            <!-- Single Property -->
+                            <div class="col-xl-4 col-lg-4 col-md-6">
+                                <div class="property-listing card border rounded-3">
+                                    <div class="listing-img-wrapper p-3">
+                                        <div class="list-img-slide position-relative">
+                                            @if($property->featured)
+                                            <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
+                                                <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
+                                                    <span class="svg-icon text-light svg-icon-2hx me-1">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
+                                                            <path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
+                                                        </svg>
+                                                    </span>{{ $locale === 'uz' ? 'Tavsiya' : ($locale === 'ru' ? 'Проверено' : 'Verified') }}
+                                                </div>
+                                            </div>
+                                            @endif
+                                            <div class="clicks rounded-3 overflow-hidden mb-0">
+                                                <a href="{{ route('property.show', $property->slug) }}">
+                                                    @if($property->featured_image)
+                                                    <img src="{{ asset('storage/' . $property->featured_image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title ?? 'N/A' }}" />
+                                                    @else
+                                                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop" class="img-fluid" alt="Placeholder" />
+                                                    @endif
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="listing-caption-wrapper px-3">
+                                        <div class="listing-detail-wrapper">
+                                            <div class="listing-short-detail-wrap">
+                                                <div class="listing-short-detail">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="label for-sale prt-type me-2">{{ $locale === 'uz' ? 'Sotuv' : ($locale === 'ru' ? 'Продажа' : 'For Sale') }}</span>
+                                                        <span class="label property-type property-cats">{{ ucfirst($property->property_type ?? 'Property') }}</span>
+                                                    </div>
+                                                    <h4 class="listing-name fw-medium fs-5 mb-1">
+                                                        <a href="{{ route('property.show', $property->slug) }}">{{ $property->translate($locale)->title ?? $property->title ?? 'N/A' }}</a>
+                                                    </h4>
+                                                    <div class="prt-location text-muted-2">
+                                                        <span class="svg-icon svg-icon-2hx">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
+                                                                <path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
+                                                            </svg>
+                                                        </span>
+                                                        {{ $property->city }}{{ $property->region ? ', ' . $property->region : '' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="price-features-wrapper">
+                                            <div class="list-fx-features d-flex align-items-center justify-content-between">
+                                                @if($property->bedrooms)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">{{ $property->bedrooms }}BHK</span>
+                                                </div>
+                                                @endif
+                                                @if($property->bedrooms)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">{{ $property->bedrooms }} {{ $locale === 'uz' ? 'Yotoq' : ($locale === 'ru' ? 'Спальни' : 'Beds') }}</span>
+                                                </div>
+                                                @endif
+                                                @if($property->area)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">{{ number_format($property->area, 0) }} SQFT</span>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
+                                            <div class="listing-short-detail-flex">
+                                                <h6 class="listing-card-info-price m-0 text-main">{{ number_format($property->price, 0) }} {{ $property->currency ?? 'UZS' }}</h6>
+                                            </div>
+                                            <div class="footer-flex">
+                                                <a href="{{ route('property.show', $property->slug) }}" class="prt-view">
+                                                    <span class="svg-icon text-main svg-icon-2hx">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
+                                                            <path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
+                                                        </svg>
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="col-12 text-center py-5">
+                                <p class="text-muted">{{ $locale === 'uz' ? 'Sotuvga e\'lonlar topilmadi' : ($locale === 'ru' ? 'Объявления на продажу не найдены' : 'No sale listings found') }}</p>
+                            </div>
+                            @endforelse
+
                         </div>
-                        <a href="#" class="btn btn-call-to-act">SignUp Today</a>
+                    </div>
+
+                    <div class="tab-pane fade" id="pills-rent" role="tabpanel" aria-labelledby="pills-rent-tab" tabindex="0">
+                        <div class="row align-items-center justify-content-center g-4">
+
+                            @forelse($rentProperties as $property)
+                            <!-- Single Property -->
+                            <div class="col-xl-4 col-lg-4 col-md-6">
+                                <div class="property-listing card border rounded-3">
+                                    <div class="listing-img-wrapper p-3">
+                                        <div class="list-img-slide position-relative">
+                                            @if($property->featured)
+                                            <div class="position-absolute top-0 left-0 ms-3 mt-3 z-1">
+                                                <div class="label verified-listing d-inline-flex align-items-center justify-content-center">
+                                                    <span class="svg-icon text-light svg-icon-2hx me-1">
+                                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path opacity="0.3" d="M20.5543 4.37824L12.1798 2.02473C12.0626 1.99176 11.9376 1.99176 11.8203 2.02473L3.44572 4.37824C3.18118 4.45258 3 4.6807 3 4.93945V13.569C3 14.6914 3.48509 15.8404 4.4417 16.984C5.17231 17.8575 6.18314 18.7345 7.446 19.5909C9.56752 21.0295 11.6566 21.912 11.7445 21.9488C11.8258 21.9829 11.9129 22 12.0001 22C12.0872 22 12.1744 21.983 12.2557 21.9488C12.3435 21.912 14.4326 21.0295 16.5541 19.5909C17.8169 18.7345 18.8277 17.8575 19.5584 16.984C20.515 15.8404 21 14.6914 21 13.569V4.93945C21 4.6807 20.8189 4.45258 20.5543 4.37824Z" fill="currentColor"></path>
+                                                            <path d="M14.854 11.321C14.7568 11.2282 14.6388 11.1818 14.4998 11.1818H14.3333V10.2272C14.3333 9.61741 14.1041 9.09378 13.6458 8.65628C13.1875 8.21876 12.639 8 12 8C11.361 8 10.8124 8.21876 10.3541 8.65626C9.89574 9.09378 9.66663 9.61739 9.66663 10.2272V11.1818H9.49999C9.36115 11.1818 9.24306 11.2282 9.14583 11.321C9.0486 11.4138 9 11.5265 9 11.6591V14.5227C9 14.6553 9.04862 14.768 9.14583 14.8609C9.24306 14.9536 9.36115 15 9.49999 15H14.5C14.6389 15 14.7569 14.9536 14.8542 14.8609C14.9513 14.768 15 14.6553 15 14.5227V11.6591C15.0001 11.5265 14.9513 11.4138 14.854 11.321ZM13.3333 11.1818H10.6666V10.2272C10.6666 9.87594 10.7969 9.57597 11.0573 9.32743C11.3177 9.07886 11.6319 8.9546 12 8.9546C12.3681 8.9546 12.6823 9.07884 12.9427 9.32743C13.2031 9.57595 13.3333 9.87594 13.3333 10.2272V11.1818Z" fill="currentColor"></path>
+                                                        </svg>
+                                                    </span>{{ $locale === 'uz' ? 'Tavsiya' : ($locale === 'ru' ? 'Проверено' : 'Verified') }}
+                                                </div>
+                                            </div>
+                                            @endif
+                                            <div class="clicks rounded-3 overflow-hidden mb-0">
+                                                <a href="{{ route('property.show', $property->slug) }}">
+                                                    @if($property->featured_image)
+                                                    <img src="{{ asset('storage/' . $property->featured_image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title ?? 'N/A' }}" />
+                                                    @else
+                                                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop" class="img-fluid" alt="Placeholder" />
+                                                    @endif
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="listing-caption-wrapper px-3">
+                                        <div class="listing-detail-wrapper">
+                                            <div class="listing-short-detail-wrap">
+                                                <div class="listing-short-detail">
+                                                    <div class="d-flex align-items-center">
+                                                        <span class="label for-rent prt-type me-2">{{ $locale === 'uz' ? 'Ijaraga' : ($locale === 'ru' ? 'Аренда' : 'For Rent') }}</span>
+                                                        <span class="label property-type property-cats">{{ ucfirst($property->property_type ?? 'Property') }}</span>
+                                                    </div>
+                                                    <h4 class="listing-name fw-medium fs-5 mb-1">
+                                                        <a href="{{ route('property.show', $property->slug) }}">{{ $property->translate($locale)->title ?? $property->title ?? 'N/A' }}</a>
+                                                    </h4>
+                                                    <div class="prt-location text-muted-2">
+                                                        <span class="svg-icon svg-icon-2hx">
+                                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                <path opacity="0.3" d="M18.0624 15.3453L13.1624 20.7453C12.5624 21.4453 11.5624 21.4453 10.9624 20.7453L6.06242 15.3453C4.56242 13.6453 3.76242 11.4453 4.06242 8.94534C4.56242 5.34534 7.46242 2.44534 11.0624 2.04534C15.8624 1.54534 19.9624 5.24534 19.9624 9.94534C20.0624 12.0453 19.2624 13.9453 18.0624 15.3453Z" fill="currentColor"/>
+                                                                <path d="M12.0624 13.0453C13.7193 13.0453 15.0624 11.7022 15.0624 10.0453C15.0624 8.38849 13.7193 7.04535 12.0624 7.04535C10.4056 7.04535 9.06241 8.38849 9.06241 10.0453C9.06241 11.7022 10.4056 13.0453 12.0624 13.0453Z" fill="currentColor"/>
+                                                            </svg>
+                                                        </span>
+                                                        {{ $property->city }}{{ $property->region ? ', ' . $property->region : '' }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="price-features-wrapper">
+                                            <div class="list-fx-features d-flex align-items-center justify-content-between">
+                                                @if($property->bedrooms)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-building-shield fs-sm"></i></div><span class="text-muted-2">{{ $property->bedrooms }}BHK</span>
+                                                </div>
+                                                @endif
+                                                @if($property->bedrooms)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-bed fs-sm"></i></div><span class="text-muted-2">{{ $property->bedrooms }} {{ $locale === 'uz' ? 'Yotoq' : ($locale === 'ru' ? 'Спальни' : 'Beds') }}</span>
+                                                </div>
+                                                @endif
+                                                @if($property->area)
+                                                <div class="listing-card d-flex align-items-center">
+                                                    <div class="square--30 text-muted-2 fs-sm circle gray-simple me-2"><i class="fa-solid fa-clone fs-sm"></i></div><span class="text-muted-2">{{ number_format($property->area, 0) }} SQFT</span>
+                                                </div>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="listing-detail-footer d-flex align-items-center justify-content-between py-4">
+                                            <div class="listing-short-detail-flex">
+                                                <h6 class="listing-card-info-price m-0 text-main">{{ number_format($property->price, 0) }} {{ $property->currency ?? 'UZS' }}/{{ $locale === 'uz' ? 'oy' : ($locale === 'ru' ? 'мес' : 'month') }}</h6>
+                                            </div>
+                                            <div class="footer-flex">
+                                                <a href="{{ route('property.show', $property->slug) }}" class="prt-view">
+                                                    <span class="svg-icon text-main svg-icon-2hx">
+                                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
+                                                            <path opacity="0.3" d="M20.664 2.06648L2.62602 9.00148C2.44768 9.07085 2.29348 9.19082 2.1824 9.34663C2.07131 9.50244 2.00818 9.68731 2.00074 9.87853C1.99331 10.0697 2.04189 10.259 2.14054 10.4229C2.23919 10.5869 2.38359 10.7185 2.55601 10.8015L7.86601 13.3365C8.02383 13.4126 8.19925 13.4448 8.37382 13.4297C8.54839 13.4145 8.71565 13.3526 8.85801 13.2505L15.43 8.56548L21.711 2.28448C21.5762 2.15096 21.4055 2.05932 21.2198 2.02064C21.034 1.98196 20.8409 1.99788 20.664 2.06648Z" fill="currentColor"/>
+                                                        </svg>
+                                                    </span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @empty
+                            <div class="col-12 text-center py-5">
+                                <p class="text-muted">{{ $locale === 'uz' ? 'Ijara e\'lonlari topilmadi' : ($locale === 'ru' ? 'Объявления на аренду не найдены' : 'No rent listings found') }}</p>
+                            </div>
+                            @endforelse
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</section>
+<!-- ============================ Latest Property For Sale End ================================== -->
+
+<!-- ============================ Featured Property For Sale Start ================================== -->
+@if($featuredProperties->count() > 0)
+<section class="bg-light">
+    <div class="container">
+
+        <div class="row justify-content-center">
+            <div class="col-lg-7 col-md-10 text-center">
+                <div class="sec-heading center">
+                    <h2>{{ $locale === 'uz' ? 'Tavsiya etilgan uy-joylar' : ($locale === 'ru' ? 'Рекомендуемые объявления' : 'Featured Property For Sale') }}</h2>
+                    <p>{{ $locale === 'uz' ? 'Eng yaxshi takliflar' : ($locale === 'ru' ? 'Лучшие предложения' : 'Best offers') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row list-layout">
+
+            @foreach($featuredProperties->take(3) as $property)
+            <!-- Single Property Start -->
+            <div class="col-xl-6 col-lg-6 col-md-12">
+                <div class="property-listing property-1 bg-white p-2 rounded">
+
+                    <div class="listing-img-wrapper">
+                        <a href="{{ route('property.show', $property->slug) }}">
+                            @if($property->featured_image)
+                            <img src="{{ asset('storage/' . $property->featured_image) }}" class="img-fluid mx-auto rounded" alt="{{ $property->translate($locale)->title ?? 'N/A' }}" />
+                            @else
+                            <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&h=400&fit=crop" class="img-fluid mx-auto rounded" alt="Placeholder" />
+                            @endif
+                        </a>
+                    </div>
+
+                    <div class="listing-content">
+                        <div class="listing-detail-wrapper-box">
+                            <div class="listing-detail-wrapper d-flex align-items-center justify-content-between">
+                                <div class="listing-short-detail">
+                                    <span class="label for-sale d-inline-flex mb-1">{{ $property->listing_type === 'sale' ? ($locale === 'uz' ? 'Sotuv' : ($locale === 'ru' ? 'Продажа' : 'For Sale')) : ($locale === 'uz' ? 'Ijaraga' : ($locale === 'ru' ? 'Аренда' : 'For Rent')) }}</span>
+                                    <h4 class="listing-name mb-0"><a href="{{ route('property.show', $property->slug) }}">{{ $property->translate($locale)->title ?? $property->title ?? 'N/A' }}</a></h4>
+                                </div>
+                                <div class="list-price">
+                                    <h6 class="listing-card-info-price text-main">{{ number_format($property->price, 0) }} {{ $property->currency ?? 'UZS' }}</h6>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="price-features-wrapper">
+                            <div class="list-fx-features d-flex align-items-center justify-content-between mt-3 mb-1">
+                                @if($property->bedrooms)
+                                <div class="listing-card d-flex align-items-center">
+                                    <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-building-shield fs-xs"></i></div><span class="text-muted-2 fs-sm">{{ $property->bedrooms }}BHK</span>
+                                </div>
+                                @endif
+                                @if($property->bedrooms)
+                                <div class="listing-card d-flex align-items-center">
+                                    <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-bed fs-xs"></i></div><span class="text-muted-2 fs-sm">{{ $property->bedrooms }} {{ $locale === 'uz' ? 'Yotoq' : ($locale === 'ru' ? 'Спальни' : 'Beds') }}</span>
+                                </div>
+                                @endif
+                                @if($property->area)
+                                <div class="listing-card d-flex align-items-center">
+                                    <div class="square--25 text-muted-2 fs-sm circle gray-simple me-1"><i class="fa-solid fa-clone fs-xs"></i></div><span class="text-muted-2 fs-sm">{{ number_format($property->area, 0) }} SQFT</span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="listing-footer-wrapper">
+                            <div class="listing-locate">
+                                <span class="listing-location text-muted-2"><i class="fa-solid fa-location-pin me-1"></i>{{ $property->city }}{{ $property->region ? ', ' . $property->region : '' }}</span>
+                            </div>
+                            <div class="listing-detail-btn">
+                                <a href="{{ route('property.show', $property->slug) }}" class="btn btn-sm px-4 fw-medium btn-main">{{ $locale === 'uz' ? 'Ko\'rish' : ($locale === 'ru' ? 'Смотреть' : 'View') }}</a>
+                            </div>
+                        </div>
+
                     </div>
 
                 </div>
             </div>
+            <!-- Single Property End -->
+            @endforeach
+
         </div>
-    </section>
-    <!-- ============================ Call To Action End ================================== -->
+
+    </div>
+</section>
+@endif
+<!-- ============================ Featured Property For Sale End ================================== -->
 
 @endsection

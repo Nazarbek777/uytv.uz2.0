@@ -6,93 +6,95 @@
 @section('content')
 <div class="row">
     <div class="col-lg-8">
+        @php
+            $title = $property->translate('uz')->title
+                ?? $property->translate('ru')->title
+                ?? $property->translate('en')->title
+                ?? 'Sarlavha belgilanmagan';
+            $description = $property->translate('uz')->description
+                ?? $property->translate('ru')->description
+                ?? $property->translate('en')->description
+                ?? null;
+        @endphp
+
         <div class="admin-table mb-4">
             <div class="p-4">
-                <div class="d-flex justify-content-between align-items-start mb-4">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
                     <div>
-                        <h3 class="mb-2">{{ $property->title }}</h3>
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge-status badge-{{ $property->status }}">{{ ucfirst($property->status) }}</span>
+                            @if($property->featured)
+                                <span class="badge bg-warning-subtle text-warning"><i class="bi bi-star-fill me-1"></i>Featured</span>
+                            @endif
+                            @if($property->verified)
+                                <span class="badge bg-success-subtle text-success"><i class="bi bi-check2-circle me-1"></i>Verified</span>
+                            @endif
+                        </div>
+                        <h3 class="mb-1">{{ $title }}</h3>
                         <p class="text-muted mb-0">
-                            <i class="bi bi-geo-alt-fill me-1"></i>{{ $property->address ?? 'N/A' }}
+                            <i class="bi bi-geo-alt-fill me-1"></i>{{ $property->address ?? 'Manzil kiritilmagan' }}
                         </p>
                     </div>
-                    <div>
-                        <span class="badge-status badge-{{ $property->status }}">
-                            {{ ucfirst($property->status) }}
-                        </span>
+                    <div class="text-end">
+                        <small class="text-muted d-block">Narx</small>
+                        <div class="fs-3 fw-semibold text-primary">{{ number_format($property->price, 0, '.', ' ') }} {{ $property->currency }}</div>
+                        <small class="text-muted">{{ $property->listing_type === 'sale' ? 'Sotish' : 'Ijaraga' }}</small>
                     </div>
                 </div>
                 
                 @if($property->featured_image)
-                <div class="mb-4">
-                    <img src="{{ asset('storage/' . $property->featured_image) }}" alt="" class="img-fluid rounded" style="max-height: 400px; width: 100%; object-fit: cover;">
+                <div class="mb-4 rounded-4 overflow-hidden shadow-sm">
+                    <img src="{{ asset('storage/' . $property->featured_image) }}" alt="" class="img-fluid w-100" style="max-height: 420px; object-fit: cover;">
                 </div>
                 @endif
                 
-                <div class="mb-4">
-                    <h5>Tavsif</h5>
-                    <p>{{ $property->description ?? 'Tavsif yo\'q' }}</p>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="admin-card">
+                            <p class="text-muted mb-1">Maydon</p>
+                            <h4 class="mb-0">{{ $property->area ?? '—' }} {{ $property->area_unit ?? 'm²' }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="admin-card">
+                            <p class="text-muted mb-1">Xonalar</p>
+                            <h4 class="mb-0">{{ $property->bedrooms ?? '—' }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="admin-card">
+                            <p class="text-muted mb-1">Hammom</p>
+                            <h4 class="mb-0">{{ $property->bathrooms ?? '—' }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="admin-card">
+                            <p class="text-muted mb-1">Shahar</p>
+                            <h4 class="mb-0">{{ $property->city ?? '—' }}</h4>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="row mb-4">
+
+                <div class="mb-4">
+                    <h5 class="mb-2">Tavsif</h5>
+                    <p class="text-muted mb-0">{{ $description ?? 'Tavsif qo\'shilmagan.' }}</p>
+                </div>
+
+                <div class="row g-4">
                     <div class="col-md-6">
-                        <h5>Asosiy Ma'lumotlar</h5>
-                        <table class="table table-bordered">
+                        <h5 class="mb-3">Asosiy ma'lumotlar</h5>
+                        <table class="table table-borderless">
                             <tr>
-                                <th>Narx</th>
-                                <td class="fw-bold text-main">{{ number_format($property->price) }} {{ $property->currency }}</td>
-                            </tr>
-                            <tr>
-                                <th>Maydon</th>
-                                <td>{{ $property->area ?? 'N/A' }} {{ $property->area_unit ?? '' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Xonalar</th>
-                                <td>{{ $property->bedrooms ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Hammom</th>
-                                <td>{{ $property->bathrooms ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Uy turi</th>
+                                <th width="40%">Uy turi</th>
                                 <td>{{ ucfirst($property->property_type) }}</td>
                             </tr>
                             <tr>
-                                <th>Holat</th>
+                                <th>Listing turi</th>
                                 <td>{{ $property->listing_type === 'sale' ? 'Sotish' : 'Ijaraga' }}</td>
                             </tr>
-                        </table>
-                    </div>
-                    <div class="col-md-6">
-                        <h5>Qo'shimcha Ma'lumotlar</h5>
-                        <table class="table table-bordered">
                             <tr>
-                                <th>Egasi</th>
-                                <td>{{ $property->user->name ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Shahar</th>
-                                <td>{{ $property->city ?? 'N/A' }}</td>
-                            </tr>
-                            <tr>
-                                <th>Featured</th>
-                                <td>
-                                    @if($property->featured)
-                                        <span class="badge bg-success">Ha</span>
-                                    @else
-                                        <span class="badge bg-secondary">Yo'q</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Verified</th>
-                                <td>
-                                    @if($property->verified)
-                                        <span class="badge bg-success">Ha</span>
-                                    @else
-                                        <span class="badge bg-secondary">Yo'q</span>
-                                    @endif
-                                </td>
+                                <th>Lat / Long</th>
+                                <td>{{ $property->latitude ?? '—' }} / {{ $property->longitude ?? '—' }}</td>
                             </tr>
                             <tr>
                                 <th>Ko'rishlar</th>
@@ -103,6 +105,24 @@
                                 <td>{{ $property->created_at->format('d.m.Y H:i') }}</td>
                             </tr>
                         </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h5 class="mb-3">Provider haqida</h5>
+                        <div class="p-3 rounded-4 border bg-light">
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:50px;height:50px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-semibold">{{ $property->user->name ?? 'Noma\'lum' }}</div>
+                                    <small class="text-muted">{{ $property->user->email ?? 'email mavjud emas' }}</small>
+                                </div>
+                            </div>
+                            <div class="text-muted small">
+                                <div><i class="bi bi-telephone me-1"></i>{{ $property->user->phone ?? 'Telefon kiritilmagan' }}</div>
+                                <div><i class="bi bi-building me-1"></i>{{ $property->user->company_name ?? 'Kompaniya ko\'rsatilmagan' }}</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

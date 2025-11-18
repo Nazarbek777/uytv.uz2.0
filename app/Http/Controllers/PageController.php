@@ -11,6 +11,8 @@ class PageController
 {
     public function home()
     {
+        $locale = app()->getLocale();
+        
         // Featured properties for home page
         $featuredProperties = Property::with('translations')
             ->published()
@@ -26,7 +28,45 @@ class PageController
             ->limit(6)
             ->get();
 
-        return view('pages.home', compact('featuredProperties', 'latestProperties'));
+        // Featured developments
+        $featuredDevelopments = Development::with(['builder', 'properties'])
+            ->where('status', 'published')
+            ->where('featured', true)
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        // Latest developments
+        $latestDevelopments = Development::with(['builder', 'properties'])
+            ->where('status', 'published')
+            ->latest()
+            ->limit(6)
+            ->get();
+
+        // Cities for search (from both properties and developments)
+        $propertyCities = Property::published()
+            ->distinct()
+            ->pluck('city')
+            ->filter();
+        
+        $developmentCities = Development::where('status', 'published')
+            ->distinct()
+            ->pluck('city')
+            ->filter();
+        
+        $cities = $propertyCities->merge($developmentCities)
+            ->unique()
+            ->sort()
+            ->values();
+
+        return view('pages.home', compact(
+            'featuredProperties',
+            'latestProperties',
+            'featuredDevelopments',
+            'latestDevelopments',
+            'cities',
+            'locale'
+        ));
     }
 
     public function pageListings(Request $request)
