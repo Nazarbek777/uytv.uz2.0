@@ -126,7 +126,7 @@
                     </h1>
                 </div>
                 
-                <form action="{{ route('page.listings') }}" method="GET" class="hero-search-ideal">
+                <form action="{{ route('listings') }}" method="GET" class="hero-search-ideal">
                     <div class="search-tabs">
                         <button type="button" class="search-tab-btn active" data-tab="sale">
                             {{ $locale === 'uz' ? 'Sotuv' : ($locale === 'ru' ? 'Купить' : 'Buy') }}

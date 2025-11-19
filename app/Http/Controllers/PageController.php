@@ -237,7 +237,7 @@ class PageController
         $locale = $request->get('locale', app()->getLocale());
         app()->setLocale($locale);
 
-        $property = Property::with(['translations', 'user', 'images'])
+        $property = Property::with(['translations', 'user', 'approvedComments.user'])
             ->where('slug', $slug)
             ->published()
             ->firstOrFail();

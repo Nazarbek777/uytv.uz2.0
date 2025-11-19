@@ -148,8 +148,16 @@
                             ['label' => 'Quruvchilar', 'icon' => 'bi-person-workspace', 'route' => 'admin.builders.index', 'pattern' => 'admin.builders.*'],
                             ['label' => 'Qurilishlar', 'icon' => 'bi-bricks', 'route' => 'admin.developments.index', 'pattern' => 'admin.developments.*'],
                         ],
+                        'Kontent' => [
+                            ['label' => 'Kategoriyalar', 'icon' => 'bi-tags', 'route' => 'admin.categories.index', 'pattern' => 'admin.categories.*'],
+                            ['label' => 'Shaharlar', 'icon' => 'bi-geo-alt', 'route' => 'admin.cities.index', 'pattern' => 'admin.cities.*'],
+                            ['label' => 'FAQ', 'icon' => 'bi-question-circle', 'route' => 'admin.faqs.index', 'pattern' => 'admin.faqs.*'],
+                        ],
                         'Tizim' => [
                             ['label' => 'Telegram Kanallar', 'icon' => 'bi-telegram', 'route' => 'admin.telegram-channels.index', 'pattern' => 'admin.telegram-channels.*'],
+                            ['label' => 'Media Boshqaruv', 'icon' => 'bi-folder', 'route' => 'admin.media.index', 'pattern' => 'admin.media.*'],
+                            ['label' => 'Faollik Jurnali', 'icon' => 'bi-journal-text', 'route' => 'admin.activity-logs.index', 'pattern' => 'admin.activity-logs.*'],
+                            ['label' => 'Statistika', 'icon' => 'bi-graph-up', 'route' => 'admin.analytics.index', 'pattern' => 'admin.analytics.*'],
                             ['label' => 'Sozlamalar', 'icon' => 'bi-gear', 'route' => 'admin.settings.index', 'pattern' => 'admin.settings.*'],
                         ],
                     ];
