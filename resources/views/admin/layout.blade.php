@@ -149,6 +149,7 @@
                             ['label' => 'Qurilishlar', 'icon' => 'bi-bricks', 'route' => 'admin.developments.index', 'pattern' => 'admin.developments.*'],
                         ],
                         'Tizim' => [
+                            ['label' => 'Telegram Kanallar', 'icon' => 'bi-telegram', 'route' => 'admin.telegram-channels.index', 'pattern' => 'admin.telegram-channels.*'],
                             ['label' => 'Sozlamalar', 'icon' => 'bi-gear', 'route' => 'admin.settings.index', 'pattern' => 'admin.settings.*'],
                         ],
                     ];

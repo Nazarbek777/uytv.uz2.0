@@ -14,14 +14,21 @@ Route::post('/register', [AuthController::class, 'register']);
 
 // Public routes
 Route::get('/', [PageController::class, 'home'])->name('home');
-Route::get('/page-listings', [PageController::class, 'pageListings'])->name('page.listings');
-Route::get('/single-listing', [PageController::class, 'singleListing'])->name('single.listing');
 
-// Listings routes (alias for properties) - use PageController for full functionality
+// Listings routes
 Route::get('/listings', [PageController::class, 'pageListings'])->name('listings');
+Route::get('/listing/{slug}', [PageController::class, 'singleListing'])->name('listing.show');
 
 // Map route
 Route::get('/map', [PageController::class, 'map'])->name('map');
+
+// AI Search route
+Route::post('/api/ai-search', [PageController::class, 'aiSearch'])->name('ai.search');
+
+// Chatbot routes
+Route::post('/api/chatbot/chat', [\App\Http\Controllers\ChatbotController::class, 'chat'])->name('chatbot.chat');
+Route::post('/api/chatbot/clear', [\App\Http\Controllers\ChatbotController::class, 'clearHistory'])->name('chatbot.clear');
+Route::get('/api/chatbot/welcome', [\App\Http\Controllers\ChatbotController::class, 'welcome'])->name('chatbot.welcome');
 
 // Locale switching
 Route::get('/locale/{locale}', function($locale) {
@@ -32,9 +39,13 @@ Route::get('/locale/{locale}', function($locale) {
     return redirect()->back();
 })->name('locale.switch');
 
-// Property routes (public) - use PageController for full functionality
-Route::get('/properties', [PageController::class, 'pageListings'])->name('properties.index');
-Route::get('/property/{slug}', [PropertyController::class, 'show'])->name('property.show');
+// Property routes (public) - redirect to listings
+Route::get('/properties', function() {
+    return redirect()->route('listings');
+})->name('properties.index');
+Route::get('/property/{slug}', function($slug) {
+    return redirect()->route('listing.show', $slug);
+})->name('property.show');
 
 // Properties create route (redirects to provider if authenticated, or shows login page)
 Route::get('/properties/create', function() {
@@ -109,6 +120,13 @@ Route::middleware(['auth', \App\Http\Middleware\AdminMiddleware::class])->prefix
         Route::post('/{builder}/toggle-verified', [\App\Http\Controllers\Admin\BuilderController::class, 'toggleVerified'])->name('toggle-verified');
         Route::post('/{builder}/toggle-featured', [\App\Http\Controllers\Admin\BuilderController::class, 'toggleFeatured'])->name('toggle-featured');
     });
+
+    // Telegram Channels
+    Route::resource('telegram-channels', \App\Http\Controllers\Admin\TelegramChannelController::class);
+    Route::post('telegram-channels/{telegramChannel}/toggle-active', [\App\Http\Controllers\Admin\TelegramChannelController::class, 'toggleActive'])->name('telegram-channels.toggle-active');
+    Route::post('telegram-channels/get-info', [\App\Http\Controllers\Admin\TelegramChannelController::class, 'getChannelInfo'])->name('telegram-channels.get-info');
+        Route::post('telegram-channels/run-scraper', [\App\Http\Controllers\Admin\ScraperController::class, 'run'])->name('telegram-channels.run-scraper');
+        Route::get('telegram-channels/scraper-status', [\App\Http\Controllers\Admin\ScraperController::class, 'status'])->name('telegram-channels.scraper-status');
 
     // Settings & Integrations
     Route::get('/settings', [\App\Http\Controllers\Admin\SettingsController::class, 'index'])->name('settings.index');

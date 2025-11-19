@@ -38,6 +38,24 @@ class AuthController extends Controller
 
             $user = Auth::user();
             
+            // If AJAX request, return JSON response
+            if ($request->expectsJson() || $request->wantsJson()) {
+                $redirectUrl = '/';
+                if ($user->isAdmin()) {
+                    $redirectUrl = route('admin.dashboard');
+                } elseif ($user->isBuilder()) {
+                    $redirectUrl = route('builder.developments.index');
+                } elseif ($user->isProvider()) {
+                    $redirectUrl = route('provider.properties.index');
+                }
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Muvaffaqiyatli kirildi!',
+                    'redirect' => $redirectUrl
+                ]);
+            }
+            
             // Redirect based on role
             if ($user->isAdmin()) {
                 return redirect()->intended(route('admin.dashboard'));
@@ -48,6 +66,17 @@ class AuthController extends Controller
             }
 
             return redirect()->intended('/');
+        }
+
+        // If AJAX request, return JSON error
+        if ($request->expectsJson() || $request->wantsJson()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email yoki parol noto\'g\'ri.',
+                'errors' => [
+                    'email' => ['Email yoki parol noto\'g\'ri.']
+                ]
+            ], 422);
         }
 
         return back()->withErrors([

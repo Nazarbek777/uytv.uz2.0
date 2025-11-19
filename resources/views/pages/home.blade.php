@@ -177,8 +177,14 @@
                             </select>
                         </div>
                         
-                        <div class="search-field">
-                            <input type="text" name="search" placeholder="{{ $locale === 'uz' ? 'Qidirish...' : ($locale === 'ru' ? 'Самые дешевые квартиры' : 'Search...') }}" class="form-control">
+                        <div class="search-field" style="position: relative;">
+                            <input type="text" name="search" id="ai-search-input" placeholder="{{ $locale === 'uz' ? 'Masalan: 3 xonali uy Toshkentda, 100 mln gacha' : ($locale === 'ru' ? 'Например: 3-комнатная квартира в Ташкенте до 100 млн' : 'E.g.: 3 bedroom apartment in Tashkent up to 100M') }}" class="form-control">
+                            <button type="button" class="btn btn-sm position-absolute" id="ai-search-toggle" style="right: 5px; top: 50%; transform: translateY(-50%); background: transparent; border: none; padding: 5px 10px;" title="{{ $locale === 'uz' ? 'AI qidiruv' : ($locale === 'ru' ? 'AI поиск' : 'AI Search') }}">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="#0987f5"/>
+                                </svg>
+                            </button>
+                            <input type="hidden" name="ai_search" id="ai_search_hidden" value="false">
                         </div>
                     </div>
                     
@@ -189,7 +195,7 @@
                             </svg>
                             {{ $locale === 'uz' ? 'Xaritada' : ($locale === 'ru' ? 'На карте' : 'On Map') }}
                         </a>
-                        <button type="submit" class="btn-search-main">
+                        <button type="submit" class="btn-search-main" id="search-submit-btn">
                             {{ $locale === 'uz' ? 'Qidirish' : ($locale === 'ru' ? 'Поиск' : 'Search') }}
                         </button>
                     </div>
@@ -212,6 +218,79 @@ document.addEventListener('DOMContentLoaded', function() {
             listingTypeInput.value = this.dataset.tab;
         });
     });
+    
+    // AI Search Toggle
+    const aiToggle = document.getElementById('ai-search-toggle');
+    const aiInput = document.getElementById('ai-search-input');
+    const aiHidden = document.getElementById('ai_search_hidden');
+    let aiSearchActive = false;
+    
+    if (aiToggle) {
+        aiToggle.addEventListener('click', function() {
+            aiSearchActive = !aiSearchActive;
+            aiHidden.value = aiSearchActive ? 'true' : 'false';
+            
+            if (aiSearchActive) {
+                this.style.background = '#0987f5';
+                this.querySelector('svg path').setAttribute('fill', 'white');
+                aiInput.placeholder = '{{ $locale === "uz" ? "AI qidiruv: Masalan, 3 xonali uy Toshkentda, 100 mln gacha" : ($locale === "ru" ? "AI поиск: Например, 3-комнатная квартира в Ташкенте до 100 млн" : "AI Search: E.g., 3 bedroom apartment in Tashkent up to 100M") }}';
+            } else {
+                this.style.background = 'transparent';
+                this.querySelector('svg path').setAttribute('fill', '#0987f5');
+                aiInput.placeholder = '{{ $locale === "uz" ? "Qidirish..." : ($locale === "ru" ? "Самые дешевые квартиры" : "Search...") }}';
+            }
+        });
+    }
+    
+    // AI Search on Enter
+    if (aiInput) {
+        aiInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && aiSearchActive) {
+                e.preventDefault();
+                performAiSearch();
+            }
+        });
+    }
+    
+    // AI Search function
+    function performAiSearch() {
+        const query = aiInput.value.trim();
+        if (!query) return;
+        
+        const submitBtn = document.getElementById('search-submit-btn');
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = '{{ $locale === "uz" ? "Qidirilmoqda..." : ($locale === "ru" ? "Поиск..." : "Searching...") }}';
+        
+        fetch('{{ route("ai.search") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                query: query,
+                locale: '{{ $locale }}'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.properties.length > 0) {
+                // Redirect to listings page with AI search results
+                window.location.href = '{{ route("listings") }}?ai_search=true&search=' + encodeURIComponent(query);
+            } else {
+                alert('{{ $locale === "uz" ? "Natija topilmadi" : ($locale === "ru" ? "Результаты не найдены" : "No results found") }}');
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        })
+        .catch(error => {
+            console.error('AI Search error:', error);
+            alert('{{ $locale === "uz" ? "Xatolik yuz berdi" : ($locale === "ru" ? "Произошла ошибка" : "An error occurred") }}');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        });
+    }
 });
 </script>
 

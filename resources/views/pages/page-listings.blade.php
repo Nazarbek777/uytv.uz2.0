@@ -409,11 +409,11 @@
                                     @endif
                                     <div class="click rounded-3 overflow-hidden mb-0">
                                         @if($property->featured_image)
-                                        <div><a href="{{ $locale ? route('property.show.locale', ['locale' => $locale, 'slug' => $property->slug]) : route('property.show', ['slug' => $property->slug]) }}"><img src="{{ asset('storage/' . $property->featured_image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title }}" /></a></div>
+                                        <div><a href="{{ route('listing.show', $property->slug) }}"><img src="{{ asset('storage/' . $property->featured_image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title }}" /></a></div>
                                         @endif
                                         @if($property->images && is_array($property->images))
                                             @foreach(array_slice($property->images, 0, 2) as $image)
-                                            <div><a href="{{ $locale ? route('property.show.locale', ['locale' => $locale, 'slug' => $property->slug]) : route('property.show', ['slug' => $property->slug]) }}"><img src="{{ asset('storage/' . $image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title }}" /></a></div>
+                                            <div><a href="{{ route('listing.show', $property->slug) }}"><img src="{{ asset('storage/' . $image) }}" class="img-fluid" alt="{{ $property->translate($locale)->title }}" /></a></div>
                                             @endforeach
                                         @endif
                                     </div>
@@ -440,7 +440,7 @@
                                                 </span>
                                             </div>
                                             <h4 class="listing-name fw-medium fs-5 mb-1">
-                                                <a href="{{ $locale ? route('property.show.locale', ['locale' => $locale, 'slug' => $property->slug]) : route('property.show', ['slug' => $property->slug]) }}">
+                                                <a href="{{ route('listing.show', $property->slug) }}">
                                                     {{ $property->translate($locale)->title }}
                                                 </a>
                                             </h4>
@@ -482,7 +482,7 @@
                                         <h6 class="listing-card-info-price m-0">{{ number_format($property->price, 0) }} {{ $property->currency }}</h6>
                                     </div>
                                     <div class="footer-flex">
-                                        <a href="{{ $locale ? route('property.show.locale', ['locale' => $locale, 'slug' => $property->slug]) : route('property.show', ['slug' => $property->slug]) }}" class="prt-view">
+                                        <a href="{{ route('listing.show', $property->slug) }}" class="prt-view">
 														<span class="svg-icon text-main svg-icon-2hx">
 															<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 																<path d="M15.43 8.56949L10.744 15.1395C10.6422 15.282 10.5804 15.4492 10.5651 15.6236C10.5498 15.7981 10.5815 15.9734 10.657 16.1315L13.194 21.4425C13.2737 21.6097 13.3991 21.751 13.5557 21.8499C13.7123 21.9488 13.8938 22.0014 14.079 22.0015H14.117C14.3087 21.9941 14.4941 21.9307 14.6502 21.8191C14.8062 21.7075 14.9261 21.5526 14.995 21.3735L21.933 3.33649C22.0011 3.15918 22.0164 2.96594 21.977 2.78013C21.9376 2.59432 21.8452 2.4239 21.711 2.28949L15.43 8.56949Z" fill="currentColor"/>
