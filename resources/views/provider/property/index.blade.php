@@ -1,4 +1,15 @@
 @extends('layouts.page')
+
+@php
+    $approvalStatusMeta = [
+        'draft' => ['label' => __('Qoralama'), 'class' => 'secondary'],
+        'pending' => ['label' => __('Tasdiqlash jarayonida'), 'class' => 'warning'],
+        'approved' => ['label' => __('Tasdiqlangan'), 'class' => 'success'],
+        'needs_changes' => ['label' => __('Qayta ishlash kerak'), 'class' => 'danger'],
+        'rejected' => ['label' => __('Rad etilgan'), 'class' => 'danger'],
+        'published' => ['label' => __('Nashr qilingan'), 'class' => 'success'],
+    ];
+@endphp
 @section('content')
     <!-- ============================ Page Title Start================================== -->
     <div class="page-title">
@@ -51,10 +62,22 @@
 
                                 <div class="d-navigation">
                                     <ul>
-                                        <li class="active"><a href="{{ route('provider.properties.index') }}"><i class="bi bi-house-door me-2"></i>Mening e'lonlarim</a></li>
-                                        <li><a href="{{ route('provider.properties.create') }}"><i class="bi bi-patch-plus me-2"></i>Yangi uy-joy qo'shish</a></li>
-                                        <li><a href="#"><i class="bi bi-person-bounding-box me-2"></i>Profil</a></li>
-                                        <li><a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bi bi-power me-2"></i>Chiqish</a></li>
+                                        <li class="{{ request()->routeIs('provider.dashboard') ? 'active' : '' }}">
+                                            <a href="{{ route('provider.dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>{{ __('Dashboard') }}</a>
+                                        </li>
+                                        <li class="{{ request()->routeIs('provider.properties.index') ? 'active' : '' }}">
+                                            <a href="{{ route('provider.properties.index') }}"><i class="bi bi-house-door me-2"></i>{{ __('Mening e\'lonlarim') }}</a>
+                                        </li>
+                                        <li class="{{ request()->routeIs('provider.properties.create') ? 'active' : '' }}">
+                                            <a href="{{ route('provider.properties.create') }}"><i class="bi bi-patch-plus me-2"></i>{{ __('Yangi uy-joy qo\'shish') }}</a>
+                                        </li>
+                                        <li class="{{ request()->routeIs('provider.subscriptions.*') ? 'active' : '' }}">
+                                            <a href="{{ route('provider.subscriptions.index') }}"><i class="bi bi-lightning-charge me-2"></i>{{ __('Obuna & TOP boost') }}</a>
+                                        </li>
+                                        <li class="{{ request()->routeIs('provider.settings.*') ? 'active' : '' }}">
+                                            <a href="{{ route('provider.settings.index') }}"><i class="bi bi-gear me-2"></i>{{ __('Sozlamalar') }}</a>
+                                        </li>
+                                        <li><a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="bi bi-power me-2"></i>{{ __('Chiqish') }}</a></li>
                                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                             @csrf
                                         </form>
@@ -103,6 +126,18 @@
                                                 @endif
                                             </div>
                                             <div class="sd-list-right">
+                                    @php
+                                        $approvalStatus = $property->approval_status ?? ($property->status === 'published' ? 'approved' : 'draft');
+                                        if ($property->status === 'rejected') {
+                                            $approvalStatus = 'needs_changes';
+                                        } elseif ($property->status === 'pending') {
+                                            $approvalStatus = 'pending';
+                                        } elseif ($property->status === 'published') {
+                                            $approvalStatus = 'approved';
+                                        }
+                                        $approvalMeta = $approvalStatusMeta[$approvalStatus] ?? ['label' => ucfirst($approvalStatus), 'class' => 'secondary'];
+                                        $approvalHistory = is_array($property->approval_history) ? $property->approval_history : [];
+                                    @endphp
                                                 <h4 class="listing_dashboard_title">
                                                     <a href="{{ route('property.show', $property->slug) }}">{{ $property->title }}</a>
                                                 </h4>
@@ -150,6 +185,28 @@
                                                     @endif
                                                 </div>
                                                 <div class="user_dashboard_listed">
+                                                    <strong>Tasdiqlash:</strong>
+                                                    <span class="badge bg-{{ $approvalMeta['class'] ?? 'secondary' }}">
+                                                        {{ $approvalMeta['label'] ?? __('Holat yangilanmoqda') }}
+                                                    </span>
+                                                    @if($property->approval_status === 'pending' && $property->approval_submitted_at)
+                                                        <small class="text-muted ms-2">
+                                                            {{ __('Yuborildi: :date', ['date' => $property->approval_submitted_at->format('d.m.Y H:i')]) }}
+                                                        </small>
+                                                    @endif
+                                                    @if($property->approval_status === 'approved' && $property->approval_reviewed_at)
+                                                        <small class="text-muted ms-2">
+                                                            {{ __('Tasdiqlandi: :date', ['date' => $property->approval_reviewed_at->format('d.m.Y H:i')]) }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                                @if(!empty($property->approval_notes) && $property->status === 'rejected')
+                                                    <div class="alert alert-warning mt-2 mb-1 small">
+                                                        <strong>{{ __('Moderator izohi:') }}</strong>
+                                                        <span>{{ $property->approval_notes }}</span>
+                                                    </div>
+                                                @endif
+                                                <div class="user_dashboard_listed">
                                                     <small class="text-muted">
                                                         Yaratilgan: {{ $property->created_at->format('d.m.Y H:i') }}
                                                         @if($property->views > 0)
@@ -187,7 +244,55 @@
                                                             <i class="fa-regular fa-circle-xmark"></i> O'chirish
                                                         </button>
                                                     </form>
+                                                    @if(in_array($property->status, ['draft', 'rejected']))
+                                                        <form action="{{ route('provider.properties.submit', $property->id) }}"
+                                                              method="POST"
+                                                              class="d-inline ms-1">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="btn btn-sm btn-success"
+                                                                    onclick="return confirm('{{ __('Tasdiqlashga yuborishni tasdiqlaysizmi?') }}');">
+                                                                <i class="bi bi-send-check me-1"></i>{{ __('Tasdiqqa yuborish') }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
+                                                    @if($property->status === 'pending')
+                                                        <form action="{{ route('provider.properties.withdraw', $property->id) }}"
+                                                              method="POST"
+                                                              class="d-inline ms-1">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                    class="btn btn-sm btn-outline-warning"
+                                                                    onclick="return confirm('{{ __('Tasdiqqa yuborishni bekor qilasizmi?') }}');">
+                                                                <i class="bi bi-arrow-counterclockwise me-1"></i>{{ __('Bekor qilish') }}
+                                                            </button>
+                                                        </form>
+                                                    @endif
                                                 </div>
+                                                @if(!empty($approvalHistory))
+                                                    <div class="mt-3">
+                                                        <div class="text-muted small mb-2">{{ __('Tasdiqlash tarixi') }}</div>
+                                                        <ul class="list-unstyled mb-0 approval-timeline">
+                                                            @foreach(array_slice(array_reverse($approvalHistory), 0, 3) as $event)
+                                                                <li class="d-flex align-items-start gap-2 mb-2">
+                                                                    <span class="badge bg-light text-dark">
+                                                                        {{ \Carbon\Carbon::parse($event['timestamp'])->format('d.m.Y H:i') }}
+                                                                    </span>
+                                                                    <div>
+                                                                        <div class="fw-semibold">
+                                                                            {{ $approvalStatusMeta[$event['status']]['label'] ?? ucfirst($event['status']) }}
+                                                                        </div>
+                                                                        @if(!empty($event['meta']['reason']))
+                                                                            <small class="text-muted">{{ $event['meta']['reason'] }}</small>
+                                                                        @elseif(!empty($event['meta']['action']))
+                                                                            <small class="text-muted">{{ __('Amal: :action', ['action' => $event['meta']['action']]) }}</small>
+                                                                        @endif
+                                                                    </div>
+                                                                </li>
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>

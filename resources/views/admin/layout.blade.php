@@ -153,6 +153,13 @@
                             ['label' => 'Shaharlar', 'icon' => 'bi-geo-alt', 'route' => 'admin.cities.index', 'pattern' => 'admin.cities.*'],
                             ['label' => 'FAQ', 'icon' => 'bi-question-circle', 'route' => 'admin.faqs.index', 'pattern' => 'admin.faqs.*'],
                         ],
+                        'AI Tizimlari' => [
+                            ['label' => 'Chatbot Analytics', 'icon' => 'bi-robot', 'route' => 'admin.ai.chatbot-analytics.index', 'pattern' => 'admin.ai.chatbot-analytics.*'],
+                            ['label' => 'Search Analytics', 'icon' => 'bi-search', 'route' => 'admin.ai.search-analytics.index', 'pattern' => 'admin.ai.search-analytics.*'],
+                            ['label' => 'Content Generator', 'icon' => 'bi-magic', 'route' => 'admin.ai.content-generator.index', 'pattern' => 'admin.ai.content-generator.*'],
+                            ['label' => 'Fraud Detection', 'icon' => 'bi-shield-exclamation', 'route' => 'admin.ai.fraud-detection.index', 'pattern' => 'admin.ai.fraud-detection.*'],
+                            ['label' => 'Price Predictor', 'icon' => 'bi-calculator', 'route' => 'admin.ai.price-predictor.index', 'pattern' => 'admin.ai.price-predictor.*'],
+                        ],
                         'Tizim' => [
                             ['label' => 'Telegram Kanallar', 'icon' => 'bi-telegram', 'route' => 'admin.telegram-channels.index', 'pattern' => 'admin.telegram-channels.*'],
                             ['label' => 'Media Boshqaruv', 'icon' => 'bi-folder', 'route' => 'admin.media.index', 'pattern' => 'admin.media.*'],

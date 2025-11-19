@@ -16,6 +16,8 @@ class Property extends Model
 {
     use Translatable, HasSlug, SoftDeletes;
 
+    protected ?string $customSlugSource = null;
+
     public $translatedAttributes = [
         'title',
         'description',
@@ -55,6 +57,12 @@ class Property extends Model
         'featured_image',
         'videos',
         'status',
+        'approval_status',
+        'approval_submitted_at',
+        'approval_reviewed_at',
+        'approval_reviewer_id',
+        'approval_notes',
+        'approval_history',
         'featured',
         'verified',
         'views',
@@ -84,6 +92,9 @@ class Property extends Model
         'floor' => 'integer',
         'views' => 'integer',
         'favorites_count' => 'integer',
+        'approval_submitted_at' => 'datetime',
+        'approval_reviewed_at' => 'datetime',
+        'approval_history' => 'array',
     ];
 
     /**
@@ -109,6 +120,10 @@ class Property extends Model
      */
     public function getSlugSourceString(): string
     {
+        if (!empty($this->customSlugSource)) {
+            return $this->customSlugSource;
+        }
+
         // Avval asosiy tildan (uz) olish
         foreach (['uz', 'ru', 'en'] as $locale) {
             if ($this->hasTranslation($locale)) {
@@ -121,6 +136,16 @@ class Property extends Model
         
         // Agar tarjima bo'lmasa, default qiymat
         return 'property-' . ($this->id ?? 'new');
+    }
+
+    public function setCustomSlugSource(?string $value): void
+    {
+        $this->customSlugSource = $value;
+    }
+
+    public function getCustomSlugSource(): ?string
+    {
+        return $this->customSlugSource;
     }
 
     /**
@@ -211,6 +236,23 @@ class Property extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function approvalReviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'approval_reviewer_id');
+    }
+
+    public function appendApprovalHistory(string $status, array $meta = []): void
+    {
+        $history = $this->approval_history ?? [];
+        $history[] = [
+            'status' => $status,
+            'meta' => $meta,
+            'timestamp' => now()->toDateTimeString(),
+        ];
+
+        $this->approval_history = array_slice($history, -20);
     }
 
     /**

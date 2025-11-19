@@ -7,7 +7,7 @@
     $description = $development->{'description_' . $locale} ?? $development->description_uz;
     $developerName = $development->{'developer_name_' . $locale} ?? $development->developer_name_uz ?? 'N/A';
     $address = $development->{'address_' . $locale} ?? ($development->region ? $development->region . ', ' . $development->city : $development->city);
-    
+
     // Get images
     $images = [];
     if ($development->featured_image) {
@@ -24,7 +24,7 @@
     if (empty($images)) {
         $images[] = 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=600&fit=crop';
     }
-    
+
     // Calculate prices
     $minPrice = 0;
     if ($development->properties && $development->properties->count() > 0) {
@@ -33,7 +33,7 @@
     } else {
         $minPrice = $development->price_from ?? 0;
     }
-    
+
     $pricePerSqm = $development->price_per_sqm ?? 0;
     if (!$pricePerSqm && $development->properties && $development->properties->count() > 0) {
         $minPriceProp = $development->properties->whereNotNull('price_from')->min('price_from') ?? 0;
@@ -42,7 +42,7 @@
             $pricePerSqm = $minPriceProp / $maxAreaProp;
         }
     }
-    
+
     // Properties grouped by bedrooms
     $propertiesByRoom = collect();
     if ($development->properties && $development->properties->count() > 0) {
@@ -58,9 +58,24 @@
                 ];
             })->sortKeys();
     }
-    
+
     $totalApartments = $development->properties ? $development->properties->count() : 0;
-    
+
+    // Amenities
+    $amenities = [];
+    if (!empty($development->amenities)) {
+        if (is_array($development->amenities)) {
+            $amenities = array_filter($development->amenities);
+        } elseif (is_string($development->amenities)) {
+            $decodedAmenities = json_decode($development->amenities, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decodedAmenities)) {
+                $amenities = array_filter($decodedAmenities);
+            } else {
+                $amenities = array_filter(array_map('trim', preg_split('/[,;\n]+/', $development->amenities)));
+            }
+        }
+    }
+
     // Builder avatar
     $builderAvatar = null;
     if ($development->builder && $development->builder->avatar) {
@@ -319,7 +334,7 @@
             @endif
 
             <!-- Visual View -->
-            @if($development->images && count($development->images) > 0)
+            @if(!empty($images))
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Vizual ko\'rinish' : ($locale === 'ru' ? 'Визуальный вид' : 'Visual View') }}</h4>
                 <img src="{{ $images[1] ?? $images[0] }}" alt="{{ $title }}" class="w-100 rounded-3" style="max-height: 400px; object-fit: cover;">
@@ -449,11 +464,11 @@
             @endif
 
             <!-- Features -->
-            @if($development->amenities && count($development->amenities) > 0)
+            @if(!empty($amenities))
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Xususiyatlar' : ($locale === 'ru' ? 'Особенности недвижимости' : 'Property Features') }}</h4>
                 <div class="feature-list">
-                    @foreach($development->amenities as $amenity)
+                        @foreach($amenities as $amenity)
                     <div class="feature-item">
                         <i class="bi bi-check-circle-fill" style="color: var(--primary-color);"></i>
                         <span>{{ is_array($amenity) ? ($amenity['name'] ?? $amenity['title'] ?? '') : $amenity }}</span>
@@ -474,7 +489,7 @@
             @endif
 
             <!-- Construction Process -->
-            @if($development->images && count($development->images) > 1)
+            @if(!empty($images) && count($images) > 1)
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Qurilish jarayoni' : ($locale === 'ru' ? 'Процесс строительства' : 'Construction Process') }}</h4>
                 <div class="position-relative" style="height: 300px; border-radius: 12px; overflow: hidden;">
@@ -557,7 +572,7 @@ document.addEventListener('DOMContentLoaded', function() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
-    
+
     var marker = L.marker([{{ $development->latitude }}, {{ $development->longitude }}], {
         icon: L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -568,7 +583,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shadowSize: [41, 41]
         })
     }).addTo(map);
-    
+
     marker.bindPopup('<b>JK "{{ $title }}"</b><br>{{ $address }}').openPopup();
 });
 </script>
@@ -579,7 +594,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const tab = this.dataset.tab;
-        
+
         // Remove active from all
         document.querySelectorAll('.tab-btn').forEach(b => {
             b.classList.remove('active');
@@ -587,18 +602,16 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             b.style.color = '#6c757d';
         });
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
+
         // Add active to clicked
         this.classList.add('active');
         this.style.borderBottom = '3px solid var(--primary-color)';
         this.style.color = 'var(--primary-color)';
-        
+
         document.getElementById(tab + 'Tab').classList.add('active');
     });
 });
 </script>
-
-@endsection
 
 
 @php
@@ -607,7 +620,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     $description = $development->{'description_' . $locale} ?? $development->description_uz;
     $developerName = $development->{'developer_name_' . $locale} ?? $development->developer_name_uz ?? 'N/A';
     $address = $development->{'address_' . $locale} ?? ($development->region ? $development->region . ', ' . $development->city : $development->city);
-    
+
     // Get images
     $images = [];
     if ($development->featured_image) {
@@ -624,7 +637,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     if (empty($images)) {
         $images[] = 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=1200&h=600&fit=crop';
     }
-    
+
     // Calculate prices
     $minPrice = 0;
     if ($development->properties && $development->properties->count() > 0) {
@@ -633,7 +646,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     } else {
         $minPrice = $development->price_from ?? 0;
     }
-    
+
     $pricePerSqm = $development->price_per_sqm ?? 0;
     if (!$pricePerSqm && $development->properties && $development->properties->count() > 0) {
         $minPriceProp = $development->properties->whereNotNull('price_from')->min('price_from') ?? 0;
@@ -642,7 +655,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             $pricePerSqm = $minPriceProp / $maxAreaProp;
         }
     }
-    
+
     // Properties grouped by bedrooms
     $propertiesByRoom = collect();
     if ($development->properties && $development->properties->count() > 0) {
@@ -658,9 +671,9 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
                 ];
             })->sortKeys();
     }
-    
+
     $totalApartments = $development->properties ? $development->properties->count() : 0;
-    
+
     // Builder avatar
     $builderAvatar = null;
     if ($development->builder && $development->builder->avatar) {
@@ -919,7 +932,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             @endif
 
             <!-- Visual View -->
-            @if($development->images && count($development->images) > 0)
+            @if(!empty($images))
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Vizual ko\'rinish' : ($locale === 'ru' ? 'Визуальный вид' : 'Visual View') }}</h4>
                 <img src="{{ $images[1] ?? $images[0] }}" alt="{{ $title }}" class="w-100 rounded-3" style="max-height: 400px; object-fit: cover;">
@@ -1049,11 +1062,11 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             @endif
 
             <!-- Features -->
-            @if($development->amenities && count($development->amenities) > 0)
+            @if(!empty($amenities))
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Xususiyatlar' : ($locale === 'ru' ? 'Особенности недвижимости' : 'Property Features') }}</h4>
                 <div class="feature-list">
-                    @foreach($development->amenities as $amenity)
+                    @foreach($amenities as $amenity)
                     <div class="feature-item">
                         <i class="bi bi-check-circle-fill" style="color: var(--primary-color);"></i>
                         <span>{{ is_array($amenity) ? ($amenity['name'] ?? $amenity['title'] ?? '') : $amenity }}</span>
@@ -1074,7 +1087,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             @endif
 
             <!-- Construction Process -->
-            @if($development->images && count($development->images) > 1)
+            @if(!empty($images) && count($images) > 1)
             <div class="info-card mb-4">
                 <h4 class="mb-3 fw-bold">{{ $locale === 'uz' ? 'Qurilish jarayoni' : ($locale === 'ru' ? 'Процесс строительства' : 'Construction Process') }}</h4>
                 <div class="position-relative" style="height: 300px; border-radius: 12px; overflow: hidden;">
@@ -1157,7 +1170,7 @@ document.addEventListener('DOMContentLoaded', function() {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
-    
+
     var marker = L.marker([{{ $development->latitude }}, {{ $development->longitude }}], {
         icon: L.icon({
             iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
@@ -1168,7 +1181,7 @@ document.addEventListener('DOMContentLoaded', function() {
             shadowSize: [41, 41]
         })
     }).addTo(map);
-    
+
     marker.bindPopup('<b>JK "{{ $title }}"</b><br>{{ $address }}').openPopup();
 });
 </script>
@@ -1179,7 +1192,7 @@ document.addEventListener('DOMContentLoaded', function() {
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         const tab = this.dataset.tab;
-        
+
         // Remove active from all
         document.querySelectorAll('.tab-btn').forEach(b => {
             b.classList.remove('active');
@@ -1187,12 +1200,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
             b.style.color = '#6c757d';
         });
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
+
         // Add active to clicked
         this.classList.add('active');
         this.style.borderBottom = '3px solid var(--primary-color)';
         this.style.color = 'var(--primary-color)';
-        
+
         document.getElementById(tab + 'Tab').classList.add('active');
     });
 });

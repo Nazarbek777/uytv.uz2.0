@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Development;
 use App\Models\DevelopmentProperty;
 use App\Models\Property;
+use App\Models\AiSearchLog;
 use App\Services\AiPropertySearchService;
 use Illuminate\Http\Request;
 
@@ -642,8 +643,36 @@ class PageController
         $locale = $request->get('locale', app()->getLocale());
         app()->setLocale($locale);
 
+        $startTime = microtime(true);
         $aiService = new AiPropertySearchService();
         $results = $aiService->search($request->query, $locale);
+        $responseTime = (microtime(true) - $startTime) * 1000; // milliseconds
+
+        // Log yozish
+        try {
+            $propertiesIds = [];
+            if (isset($results['properties'])) {
+                if (is_object($results['properties']) && method_exists($results['properties'], 'pluck')) {
+                    $propertiesIds = $results['properties']->pluck('id')->toArray();
+                } elseif (is_array($results['properties'])) {
+                    $propertiesIds = array_column($results['properties'], 'id');
+                }
+            }
+
+            AiSearchLog::create([
+                'query' => $request->query,
+                'locale' => $locale,
+                'ai_parsed_filters' => $results['filters_applied'] ?? null,
+                'results_count' => $results['count'] ?? 0,
+                'properties_found' => $propertiesIds,
+                'response_time_ms' => (int)$responseTime,
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+                'success' => isset($results['properties']) && ($results['count'] ?? 0) >= 0,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('AI Search Log yozish xatosi: ' . $e->getMessage());
+        }
 
         return response()->json([
             'success' => true,

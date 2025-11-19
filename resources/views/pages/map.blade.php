@@ -300,15 +300,15 @@
             <div class="col-lg-8 col-md-12 position-relative">
                 <!-- Mobile Overlay -->
                 <div class="map-overlay" id="mapOverlay"></div>
-                
+
                 <div id="map" style="height: 100vh; width: 100%;"></div>
-                
+
                 <!-- Filter Toggle Button (Mobile Only) -->
                 <button id="filterToggleBtn" class="btn btn-main position-absolute d-lg-none" style="top: 20px; left: 20px; z-index: 1000; border-radius: 12px; padding: 10px 18px; background: linear-gradient(135deg, #2d55a4 0%, #1e3d6f 100%); border: 2px solid white; box-shadow: 0 4px 15px rgba(45, 85, 164, 0.4); font-size: 13px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(45, 85, 164, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(45, 85, 164, 0.4)';">
                     <i class="bi bi-funnel-fill me-2" style="font-size: 16px;"></i>
                     <span>{{ $locale === 'uz' ? 'Filter' : ($locale === 'ru' ? 'Фильтр' : 'Filter') }}</span>
                 </button>
-                
+
                 <!-- My Location Button -->
                 <button id="myLocationBtn" class="btn btn-main position-absolute" style="top: 20px; right: 20px; z-index: 1000; border-radius: 50%; width: 50px; height: 50px; padding: 0; background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%); border: 3px solid white; box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4); transition: all 0.3s ease;" title="{{ $locale === 'uz' ? 'Manzilimni ko\'rsatish' : ($locale === 'ru' ? 'Показать мое местоположение' : 'Show my location') }}" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 20px rgba(255, 68, 68, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 68, 68, 0.4)';">
                     <i class="bi bi-geo-alt-fill text-white" style="font-size: 22px;"></i>
@@ -366,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         return L.divIcon({
             className: 'custom-property-marker',
             html: iconHtml,
@@ -424,7 +424,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <h5 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #1e3d6f; line-height: 1.3; letter-spacing: -0.3px;">${property.title}</h5>
                         <p style="margin: 0 0 15px 0; color: #6c757d; font-size: 13px; line-height: 1.5; display: flex; align-items: center; gap: 6px;">
-                            <i class="bi bi-geo-alt-fill" style="color: #2d55a4; font-size: 14px;"></i> 
+                            <i class="bi bi-geo-alt-fill" style="color: #2d55a4; font-size: 14px;"></i>
                             <span>${property.address}</span>
                         </p>
                         <div style="display: flex; gap: 20px; margin-bottom: 15px; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 10px; border: 1px solid #e9ecef;">
@@ -461,26 +461,26 @@ document.addEventListener('DOMContentLoaded', function() {
             var btn = this;
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split fs-4"></i>';
-            
+
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     var lat = position.coords.latitude;
                     var lng = position.coords.longitude;
-                    
+
                     // Remove existing user location marker
                     if (userLocationMarker) {
                         map.removeLayer(userLocationMarker);
                     }
-                    
+
                     // Add user location marker
                     userLocationMarker = L.marker([lat, lng], { icon: userLocationIcon })
                         .addTo(map)
                         .bindPopup('{{ $locale === "uz" ? "Sizning joylashuvingiz" : ($locale === "ru" ? "Ваше местоположение" : "Your Location") }}')
                         .openPopup();
-                    
+
                     // Center map on user location
                     map.setView([lat, lng], 13);
-                    
+
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-geo-alt-fill fs-4"></i>';
                 },
@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var filterToggleBtn = document.getElementById('filterToggleBtn');
     var filterSidebar = document.getElementById('mapFilterSidebar');
     var mapOverlay = document.getElementById('mapOverlay');
-    
+
     function toggleFilter() {
         if (window.innerWidth < 992) {
             filterSidebar.classList.toggle('show');
@@ -531,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     function closeFilter() {
         if (window.innerWidth < 992) {
             filterSidebar.classList.remove('show');
@@ -540,20 +540,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     if (filterToggleBtn && filterSidebar) {
         filterToggleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleFilter();
         });
-        
+
         // Close filter when clicking on overlay
         if (mapOverlay) {
             mapOverlay.addEventListener('click', function() {
                 closeFilter();
             });
         }
-        
+
         // Close filter when clicking outside on mobile
         document.addEventListener('click', function(e) {
             if (window.innerWidth < 992 && filterSidebar.classList.contains('show')) {
@@ -563,7 +563,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Close filter on form submit (mobile)
     var mapFilterForm = document.getElementById('mapFilterForm');
     if (mapFilterForm) {
@@ -575,7 +575,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth >= 992) {
@@ -719,11 +719,11 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: left 0.3s ease;
         box-shadow: 2px 0 20px rgba(0,0,0,0.2);
     }
-    
+
     .simple-sidebar.show {
         left: 0;
     }
-    
+
     .map-overlay {
         position: fixed;
         top: 0;
@@ -736,31 +736,31 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: opacity 0.3s ease;
         pointer-events: none;
     }
-    
+
     .map-overlay.show {
         opacity: 1;
         pointer-events: all;
     }
-    
+
     #map {
         height: 100vh;
         width: 100%;
     }
-    
+
     #filterToggleBtn {
         display: flex !important;
         align-items: center;
     }
-    
+
     #myLocationBtn {
         top: 20px;
         right: 20px;
     }
-    
+
     .col-lg-8 {
         padding: 0;
     }
-    
+
     .col-lg-4 {
         padding: 0;
     }
@@ -770,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function() {
     #filterToggleBtn {
         display: none !important;
     }
-    
+
     .simple-sidebar {
         position: relative !important;
         left: auto !important;
@@ -1021,7 +1021,6 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 </style>
 
-@endsection
 
 
 @php
@@ -1323,15 +1322,15 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="col-lg-8 col-md-12 position-relative">
                 <!-- Mobile Overlay -->
                 <div class="map-overlay" id="mapOverlay"></div>
-                
+
                 <div id="map" style="height: 100vh; width: 100%;"></div>
-                
+
                 <!-- Filter Toggle Button (Mobile Only) -->
                 <button id="filterToggleBtn" class="btn btn-main position-absolute d-lg-none" style="top: 20px; left: 20px; z-index: 1000; border-radius: 12px; padding: 10px 18px; background: linear-gradient(135deg, #2d55a4 0%, #1e3d6f 100%); border: 2px solid white; box-shadow: 0 4px 15px rgba(45, 85, 164, 0.4); font-size: 13px; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(45, 85, 164, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(45, 85, 164, 0.4)';">
                     <i class="bi bi-funnel-fill me-2" style="font-size: 16px;"></i>
                     <span>{{ $locale === 'uz' ? 'Filter' : ($locale === 'ru' ? 'Фильтр' : 'Filter') }}</span>
                 </button>
-                
+
                 <!-- My Location Button -->
                 <button id="myLocationBtn" class="btn btn-main position-absolute" style="top: 20px; right: 20px; z-index: 1000; border-radius: 50%; width: 50px; height: 50px; padding: 0; background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%); border: 3px solid white; box-shadow: 0 4px 15px rgba(255, 68, 68, 0.4); transition: all 0.3s ease;" title="{{ $locale === 'uz' ? 'Manzilimni ko\'rsatish' : ($locale === 'ru' ? 'Показать мое местоположение' : 'Show my location') }}" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 20px rgba(255, 68, 68, 0.5)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(255, 68, 68, 0.4)';">
                     <i class="bi bi-geo-alt-fill text-white" style="font-size: 22px;"></i>
@@ -1389,7 +1388,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
         `;
-        
+
         return L.divIcon({
             className: 'custom-property-marker',
             html: iconHtml,
@@ -1447,7 +1446,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         <h5 style="margin: 0 0 10px 0; font-size: 20px; font-weight: 700; color: #1e3d6f; line-height: 1.3; letter-spacing: -0.3px;">${property.title}</h5>
                         <p style="margin: 0 0 15px 0; color: #6c757d; font-size: 13px; line-height: 1.5; display: flex; align-items: center; gap: 6px;">
-                            <i class="bi bi-geo-alt-fill" style="color: #2d55a4; font-size: 14px;"></i> 
+                            <i class="bi bi-geo-alt-fill" style="color: #2d55a4; font-size: 14px;"></i>
                             <span>${property.address}</span>
                         </p>
                         <div style="display: flex; gap: 20px; margin-bottom: 15px; padding: 12px; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); border-radius: 10px; border: 1px solid #e9ecef;">
@@ -1484,26 +1483,26 @@ document.addEventListener('DOMContentLoaded', function() {
             var btn = this;
             btn.disabled = true;
             btn.innerHTML = '<i class="bi bi-hourglass-split fs-4"></i>';
-            
+
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     var lat = position.coords.latitude;
                     var lng = position.coords.longitude;
-                    
+
                     // Remove existing user location marker
                     if (userLocationMarker) {
                         map.removeLayer(userLocationMarker);
                     }
-                    
+
                     // Add user location marker
                     userLocationMarker = L.marker([lat, lng], { icon: userLocationIcon })
                         .addTo(map)
                         .bindPopup('{{ $locale === "uz" ? "Sizning joylashuvingiz" : ($locale === "ru" ? "Ваше местоположение" : "Your Location") }}')
                         .openPopup();
-                    
+
                     // Center map on user location
                     map.setView([lat, lng], 13);
-                    
+
                     btn.disabled = false;
                     btn.innerHTML = '<i class="bi bi-geo-alt-fill fs-4"></i>';
                 },
@@ -1545,7 +1544,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var filterToggleBtn = document.getElementById('filterToggleBtn');
     var filterSidebar = document.getElementById('mapFilterSidebar');
     var mapOverlay = document.getElementById('mapOverlay');
-    
+
     function toggleFilter() {
         if (window.innerWidth < 992) {
             filterSidebar.classList.toggle('show');
@@ -1554,7 +1553,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     function closeFilter() {
         if (window.innerWidth < 992) {
             filterSidebar.classList.remove('show');
@@ -1563,20 +1562,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
+
     if (filterToggleBtn && filterSidebar) {
         filterToggleBtn.addEventListener('click', function(e) {
             e.stopPropagation();
             toggleFilter();
         });
-        
+
         // Close filter when clicking on overlay
         if (mapOverlay) {
             mapOverlay.addEventListener('click', function() {
                 closeFilter();
             });
         }
-        
+
         // Close filter when clicking outside on mobile
         document.addEventListener('click', function(e) {
             if (window.innerWidth < 992 && filterSidebar.classList.contains('show')) {
@@ -1586,7 +1585,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Close filter on form submit (mobile)
     var mapFilterForm = document.getElementById('mapFilterForm');
     if (mapFilterForm) {
@@ -1598,7 +1597,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Handle window resize
     window.addEventListener('resize', function() {
         if (window.innerWidth >= 992) {
@@ -1742,11 +1741,11 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: left 0.3s ease;
         box-shadow: 2px 0 20px rgba(0,0,0,0.2);
     }
-    
+
     .simple-sidebar.show {
         left: 0;
     }
-    
+
     .map-overlay {
         position: fixed;
         top: 0;
@@ -1759,31 +1758,31 @@ document.addEventListener('DOMContentLoaded', function() {
         transition: opacity 0.3s ease;
         pointer-events: none;
     }
-    
+
     .map-overlay.show {
         opacity: 1;
         pointer-events: all;
     }
-    
+
     #map {
         height: 100vh;
         width: 100%;
     }
-    
+
     #filterToggleBtn {
         display: flex !important;
         align-items: center;
     }
-    
+
     #myLocationBtn {
         top: 20px;
         right: 20px;
     }
-    
+
     .col-lg-8 {
         padding: 0;
     }
-    
+
     .col-lg-4 {
         padding: 0;
     }
@@ -1793,7 +1792,7 @@ document.addEventListener('DOMContentLoaded', function() {
     #filterToggleBtn {
         display: none !important;
     }
-    
+
     .simple-sidebar {
         position: relative !important;
         left: auto !important;

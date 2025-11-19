@@ -21,7 +21,7 @@
             <!-- Submit Form -->
             <div class="col-lg-12 col-md-12">
                 <div class="submit-page">
-                    <form action="{{ route('properties.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('provider.properties.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <!-- Basic Information -->

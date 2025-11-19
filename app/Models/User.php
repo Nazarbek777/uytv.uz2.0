@@ -23,6 +23,10 @@ class User extends Authenticatable
         'password',
         'role',
         'phone',
+        'additional_phones',
+        'secondary_email',
+        'whatsapp_number',
+        'telegram_username',
         'avatar',
         'bio',
         'company_name',
@@ -32,12 +36,23 @@ class User extends Authenticatable
         'social_links',
         'address',
         'city',
+        'district',
         'country',
+        'latitude',
+        'longitude',
         'properties_count',
         'rating',
         'reviews_count',
         'verified',
         'featured',
+        'is_profile_public',
+        'onboarding_status',
+        'onboarding_progress',
+        'onboarding_data',
+        'notification_preferences',
+        'provider_documents',
+        'verification_notes',
+        'verified_at',
     ];
 
     /**
@@ -61,11 +76,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'social_links' => 'array',
+            'additional_phones' => 'array',
+            'notification_preferences' => 'array',
             'rating' => 'decimal:2',
             'properties_count' => 'integer',
             'reviews_count' => 'integer',
             'verified' => 'boolean',
             'featured' => 'boolean',
+            'is_profile_public' => 'boolean',
+            'onboarding_progress' => 'integer',
+            'onboarding_data' => 'array',
+            'provider_documents' => 'array',
+            'verified_at' => 'datetime',
         ];
     }
 
@@ -99,6 +121,16 @@ class User extends Authenticatable
     public function properties()
     {
         return $this->hasMany(Property::class);
+    }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(UserSubscription::class);
+    }
+
+    public function propertyBoosts()
+    {
+        return $this->hasMany(PropertyBoost::class);
     }
 
     /**

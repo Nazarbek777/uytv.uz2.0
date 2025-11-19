@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    use LogsActivity;
     /**
      * Show login form
      */
@@ -37,6 +39,9 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            
+            // Login log
+            $this->logActivity('login', $user);
             
             // If AJAX request, return JSON response
             if ($request->expectsJson() || $request->wantsJson()) {
@@ -89,6 +94,13 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
+        $user = Auth::user();
+        
+        // Logout log
+        if ($user) {
+            $this->logActivity('logout', $user);
+        }
+        
         Auth::logout();
 
         $request->session()->invalidate();

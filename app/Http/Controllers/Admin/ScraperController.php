@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Jobs\ScrapePropertiesJob;
 use App\Models\TelegramChannel;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 
 class ScraperController extends Controller
 {
+    use LogsActivity;
     public function run(Request $request)
     {
         $request->validate([
@@ -21,12 +24,13 @@ class ScraperController extends Controller
         ]);
 
         $channelIds = $request->input('channel_ids', []);
-        $limit = $request->input('limit');
-        $days = $request->input('days');
+        $limit = $request->input('limit') ? (int)$request->input('limit') : null;
+        $days = $request->input('days') ? (int)$request->input('days') : null;
 
         // Agar kanal tanlanmagan bo'lsa, faol kanallarni tekshirish
         if (empty($channelIds)) {
             $channels = TelegramChannel::active()->get();
+            $channelIds = $channels->pluck('id')->toArray();
         } else {
             $channels = TelegramChannel::whereIn('id', $channelIds)->get();
         }
@@ -36,11 +40,39 @@ class ScraperController extends Controller
         }
 
         // Job'ni queue'ga yuborish (asinxron ishlash)
-        ScrapePropertiesJob::dispatch($channelIds, $limit, $days);
-
-        $channelNames = $channels->pluck('name')->implode(', ');
-        
-        return back()->with('success', "Scraper ishga tushirildi! Kanal(lar): {$channelNames}. Scraper fon rejimida ishlayapti, sayt bloklanmaydi.");
+        try {
+            ScrapePropertiesJob::dispatch($channelIds, $limit, $days);
+            
+            $channelNames = $channels->pluck('name')->implode(', ');
+            
+            Log::info('Scraper ishga tushirildi', [
+                'channels' => $channelNames,
+                'channel_ids' => $channelIds,
+                'limit' => $limit,
+                'days' => $days,
+            ]);
+            
+            $this->logActivity('scraped', null, "Scraper ishga tushirildi. Kanal(lar): {$channelNames}");
+            
+            // Queue worker ishga tushirilganligini tekshirish
+            $queueDriver = config('queue.default');
+            $queueMessage = '';
+            
+            if ($queueDriver === 'sync') {
+                // Sync rejimida to'g'ridan-to'g'ri ishlaydi
+                $queueMessage = "Scraper to'g'ridan-to'g'ri ishlayapti (sync rejimi).";
+            } else {
+                // Database queue uchun worker ishga tushirilganligini tekshirish
+                $queueMessage = "Scraper queue'ga yuborildi. Queue worker ishga tushirilgan bo'lishi kerak: `php artisan queue:work` yoki `php artisan queue:listen`";
+            }
+            
+            return back()->with('success', "Scraper ishga tushirildi! Kanal(lar): {$channelNames}. {$queueMessage}");
+        } catch (\Exception $e) {
+            Log::error('Scraper ishga tushirish xatosi: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return back()->with('error', 'Scraper ishga tushirishda xatolik: ' . $e->getMessage());
+        }
     }
 
     /**

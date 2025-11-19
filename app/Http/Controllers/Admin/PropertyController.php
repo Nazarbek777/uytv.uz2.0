@@ -5,12 +5,15 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\User;
+use App\Traits\LogsActivity;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 class PropertyController extends Controller
 {
+    use LogsActivity;
     /**
      * Display a listing of the resource.
      */
@@ -106,6 +109,8 @@ class PropertyController extends Controller
             'verified' => ['nullable', 'boolean'],
         ]);
 
+        $oldValues = $property->toArray();
+        
         DB::transaction(function () use ($property, $validated, $request) {
             $property->fill([
                 'user_id' => $validated['user_id'],
@@ -124,7 +129,36 @@ class PropertyController extends Controller
                 'verified' => $request->boolean('verified'),
             ]);
 
+                if ($property->isDirty('status')) {
+                    $property->approval_status = match ($property->status) {
+                        'published' => 'approved',
+                        'pending' => 'pending',
+                        'rejected' => 'needs_changes',
+                        default => 'draft',
+                    };
+
+                    if ($property->status === 'published') {
+                        $property->approval_reviewed_at = $property->approval_reviewed_at ?? now();
+                        $property->approval_reviewer_id = $property->approval_reviewer_id ?? Auth::id();
+                        $property->approval_notes = null;
+                    }
+
+                    if ($property->status === 'draft') {
+                        $property->approval_notes = null;
+                        $property->approval_reviewed_at = null;
+                        $property->approval_reviewer_id = null;
+                        $property->approval_submitted_at = null;
+                    }
+
+                    if ($property->status === 'pending') {
+                        $property->approval_reviewed_at = null;
+                        $property->approval_reviewer_id = null;
+                    }
+                }
+
             $property->save();
+            
+            $this->logModelChanges($property, $oldValues, $property->fresh()->toArray());
 
             foreach (['uz', 'ru', 'en'] as $locale) {
                 $translation = $property->translateOrNew($locale);
@@ -145,6 +179,7 @@ class PropertyController extends Controller
      */
     public function destroy(Property $property)
     {
+        $this->logActivity('deleted', $property);
         $property->delete();
 
         return redirect()
@@ -158,8 +193,18 @@ class PropertyController extends Controller
     public function approve(Property $property)
     {
         $property->status = 'published';
+        $property->approval_status = 'approved';
+        $property->approval_reviewed_at = now();
+        $property->approval_reviewer_id = Auth::id();
+        $property->approval_notes = null;
         $property->verified = true;
+        $property->appendApprovalHistory('approved', [
+            'action' => 'approved',
+            'reviewer' => Auth::user()->name ?? 'Admin',
+        ]);
         $property->save();
+        
+        $this->logActivity('approved', $property);
 
         return back()->with('success', 'Uy-joy tasdiqlandi va nashr qilindi.');
     }
@@ -167,10 +212,26 @@ class PropertyController extends Controller
     /**
      * Reject pending property.
      */
-    public function reject(Property $property)
+    public function reject(Request $request, Property $property)
     {
+        $validated = $request->validate([
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
         $property->status = 'rejected';
+        $property->approval_status = 'needs_changes';
+        $property->approval_reviewed_at = now();
+        $property->approval_reviewer_id = Auth::id();
+        $property->approval_notes = $validated['reason'];
+        $property->verified = false;
+        $property->appendApprovalHistory('needs_changes', [
+            'action' => 'rejected',
+            'reviewer' => Auth::user()->name ?? 'Admin',
+            'reason' => $validated['reason'],
+        ]);
         $property->save();
+        
+        $this->logActivity('rejected', $property);
 
         return back()->with('success', 'Uy-joy rad etildi.');
     }
@@ -182,6 +243,8 @@ class PropertyController extends Controller
     {
         $property->featured = ! $property->featured;
         $property->save();
+        
+        $this->logActivity($property->featured ? 'featured' : 'unfeatured', $property);
 
         return back()->with('success', 'Featured holati yangilandi.');
     }
@@ -193,6 +256,8 @@ class PropertyController extends Controller
     {
         $property->verified = ! $property->verified;
         $property->save();
+        
+        $this->logActivity($property->verified ? 'verified' : 'unverified', $property);
 
         return back()->with('success', 'Verified holati yangilandi.');
     }

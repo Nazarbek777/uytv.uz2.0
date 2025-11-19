@@ -15,6 +15,19 @@
                 ?? $property->translate('ru')->description
                 ?? $property->translate('en')->description
                 ?? null;
+            $approvalStatusMap = [
+                'draft' => ['label' => 'Qoralama', 'class' => 'secondary'],
+                'pending' => ['label' => 'Tasdiqlashda', 'class' => 'warning'],
+                'approved' => ['label' => 'Tasdiqlangan', 'class' => 'success'],
+                'needs_changes' => ['label' => 'Qayta ishlash kerak', 'class' => 'danger'],
+                'rejected' => ['label' => 'Rad etilgan', 'class' => 'danger'],
+            ];
+            $computedApproval = $property->approval_status ?? ($property->status === 'published' ? 'approved' : 'draft');
+            if ($property->status === 'rejected') {
+                $computedApproval = 'needs_changes';
+            }
+            $approvalBadge = $approvalStatusMap[$computedApproval] ?? ['label' => ucfirst($computedApproval), 'class' => 'secondary'];
+            $approvalHistory = is_array($property->approval_history) ? $property->approval_history : [];
         @endphp
 
         <div class="admin-table mb-4">
@@ -147,8 +160,12 @@
                                 <i class="bi bi-check-circle me-1"></i>Tasdiqlash
                             </button>
                         </form>
-                        <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST">
+                        <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST" class="mt-3">
                             @csrf
+                            <div class="mb-2">
+                                <label class="form-label small text-muted">{{ __('Rad etish sababi') }}</label>
+                                <textarea name="reason" class="form-control" rows="3" required placeholder="{{ __('Izoh qoldiring') }}"></textarea>
+                            </div>
                             <button type="submit" class="btn btn-danger w-100">
                                 <i class="bi bi-x-circle me-1"></i>Rad etish
                             </button>
@@ -183,6 +200,61 @@
                         <i class="bi bi-arrow-left me-1"></i>Orqaga
                     </a>
                 </div>
+            </div>
+        </div>
+
+        <div class="admin-table">
+            <div class="p-3 border-bottom">
+                <h5 class="mb-0">{{ __('Tasdiqlash jarayoni') }}</h5>
+            </div>
+            <div class="p-3">
+                <div class="mb-3">
+                    <span class="badge bg-{{ $approvalBadge['class'] }}">{{ $approvalBadge['label'] }}</span>
+                    @if($property->approval_status === 'pending' && $property->approval_submitted_at)
+                        <small class="text-muted ms-2">
+                            {{ __('Yuborilgan: :date', ['date' => $property->approval_submitted_at->format('d.m.Y H:i')]) }}
+                        </small>
+                    @endif
+                    @if($property->approval_reviewed_at)
+                        <small class="text-muted ms-2 d-block">
+                            {{ __('Ko\'rib chiqildi: :date', ['date' => $property->approval_reviewed_at->format('d.m.Y H:i')]) }}
+                        </small>
+                    @endif
+                </div>
+
+                @if($property->approval_notes)
+                    <div class="alert alert-warning">
+                        <strong>{{ __('Moderator izohi:') }}</strong>
+                        <div>{{ $property->approval_notes }}</div>
+                    </div>
+                @endif
+
+                @if(!empty($approvalHistory))
+                    <ul class="list-unstyled approval-timeline mb-0">
+                        @foreach(array_slice(array_reverse($approvalHistory), 0, 5) as $event)
+                            <li class="d-flex align-items-start gap-2 mb-3">
+                                <span class="badge bg-light text-dark">
+                                    {{ \Carbon\Carbon::parse($event['timestamp'])->format('d.m.Y H:i') }}
+                                </span>
+                                <div>
+                                    <div class="fw-semibold">
+                                        {{ $approvalStatusMap[$event['status']]['label'] ?? ucfirst($event['status']) }}
+                                    </div>
+                                    @if(!empty($event['meta']['reason']))
+                                        <small class="text-muted d-block">{{ $event['meta']['reason'] }}</small>
+                                    @endif
+                                    @if(!empty($event['meta']['reviewer']))
+                                        <small class="text-muted">{{ __('Moderator: :name', ['name' => $event['meta']['reviewer']]) }}</small>
+                                    @elseif(!empty($event['meta']['actor']))
+                                        <small class="text-muted">{{ __('Foydalanuvchi: :name', ['name' => $event['meta']['actor']]) }}</small>
+                                    @endif
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <p class="text-muted small mb-0">{{ __('Tasdiqlash tarixi mavjud emas.') }}</p>
+                @endif
             </div>
         </div>
     </div>

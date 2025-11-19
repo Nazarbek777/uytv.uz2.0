@@ -1,7 +1,7 @@
 @extends('admin.layout')
 
 @section('title', 'Telegram Kanallar')
-@section('page-title', 'Telegram Kanallar')
+
 
 @section('content')
 @if(session('success'))
@@ -63,7 +63,7 @@
                 <i class="bi bi-arrow-clockwise" id="refreshIcon"></i> Yangilash
             </button>
         </div>
-        
+
         <div class="row">
             <div class="col-md-3">
                 <div class="text-center p-3 border rounded">
@@ -95,7 +95,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="mt-3" id="recentLogsContainer" style="display: none;">
             <h6 class="mb-2">Oxirgi Log'lar:</h6>
             <div class="bg-dark text-light p-3 rounded" style="max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;">
@@ -253,7 +253,7 @@
     </div>
 </div>
 
-@section('scripts')
+
 <script>
 let statusInterval;
 
@@ -261,7 +261,7 @@ let statusInterval;
 function refreshStatus() {
     const refreshIcon = document.getElementById('refreshIcon');
     refreshIcon.classList.add('spinning');
-    
+
     fetch('{{ route("admin.telegram-channels.scraper-status") }}')
         .then(response => response.json())
         .then(data => {
@@ -276,13 +276,13 @@ function refreshStatus() {
                     queueStatus.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Bo\'sh</span>';
                     queueInfo.textContent = 'Hech qanday job yo\'q';
                 }
-                
+
                 // Pending jobs
                 document.getElementById('pendingJobs').textContent = data.queue.pending;
-                
+
                 // Failed jobs
                 document.getElementById('failedJobs').textContent = data.queue.failed;
-                
+
                 // Last scraped
                 const lastScraped = document.getElementById('lastScraped');
                 if (data.last_scraped) {
@@ -293,7 +293,7 @@ function refreshStatus() {
                 } else {
                     lastScraped.innerHTML = '<span class="text-muted">Hali yig\'ilmagan</span>';
                 }
-                
+
                 // Recent logs
                 if (data.recent_logs && data.recent_logs.length > 0) {
                     const logsContainer = document.getElementById('recentLogsContainer');
@@ -344,5 +344,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 </script>
+
 @endsection
 

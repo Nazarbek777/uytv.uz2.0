@@ -4,6 +4,15 @@
 @section('page-title', 'Uy-joylar Boshqaruvi')
 
 @section('content')
+@php
+    $approvalStatusMap = [
+        'draft' => ['label' => 'Qoralama', 'class' => 'secondary'],
+        'pending' => ['label' => 'Tasdiqlashda', 'class' => 'warning'],
+        'approved' => ['label' => 'Tasdiqlangan', 'class' => 'success'],
+        'needs_changes' => ['label' => 'Qayta ishlash kerak', 'class' => 'danger'],
+        'rejected' => ['label' => 'Rad etilgan', 'class' => 'danger'],
+    ];
+@endphp
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="admin-card">
@@ -90,6 +99,7 @@
                 <th>Egasi</th>
                 <th>Narx</th>
                 <th>Holat</th>
+                <th>Tasdiqlash</th>
                 <th>Featured</th>
                 <th>Verified</th>
                 <th>Sana</th>
@@ -136,6 +146,28 @@
                     </span>
                 </td>
                 <td>
+                    @php
+                        $approvalStatus = $property->approval_status ?? ($property->status === 'published' ? 'approved' : 'draft');
+                        if ($property->status === 'rejected') {
+                            $approvalStatus = 'needs_changes';
+                        }
+                        $approvalBadge = $approvalStatusMap[$approvalStatus] ?? ['label' => ucfirst($approvalStatus), 'class' => 'secondary'];
+                    @endphp
+                    <span class="badge bg-{{ $approvalBadge['class'] }}">
+                        {{ $approvalBadge['label'] }}
+                    </span>
+                    @if($property->approval_status === 'pending' && $property->approval_submitted_at)
+                        <div class="small text-muted">
+                            {{ $property->approval_submitted_at->format('d.m') }}
+                        </div>
+                    @endif
+                    @if($property->approval_status === 'approved' && $property->approval_reviewed_at)
+                        <div class="small text-muted text-success">
+                            {{ $property->approval_reviewed_at->format('d.m') }}
+                        </div>
+                    @endif
+                </td>
+                <td>
                     <form action="{{ route('admin.properties.toggle-featured', $property->id) }}" method="POST" class="d-inline">
                         @csrf
                         <button type="submit" class="btn btn-sm btn-{{ $property->featured ? 'success' : 'secondary' }}">
@@ -167,9 +199,10 @@
                                     <i class="bi bi-check"></i>
                                 </button>
                             </form>
-                            <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST" class="d-inline">
+                            <form action="{{ route('admin.properties.reject', $property->id) }}" method="POST" class="d-inline js-reject-form">
                                 @csrf
-                                <button type="submit" class="btn btn-sm btn-danger" title="Rad etish">
+                                <input type="hidden" name="reason">
+                                <button type="button" class="btn btn-sm btn-danger js-reject-btn" title="Rad etish" data-title="{{ $title }}">
                                     <i class="bi bi-x"></i>
                                 </button>
                             </form>
@@ -204,6 +237,27 @@
 </div>
 @endsection
 
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-reject-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const form = this.closest('form');
+            if (!form) {
+                return;
+            }
+            const title = this.dataset.title ? ` (${this.dataset.title})` : '';
+            const reason = prompt(`Rad etish sababi${title}:`);
+            if (reason && reason.trim().length) {
+                const input = form.querySelector('input[name="reason"]');
+                input.value = reason.trim();
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+@endpush
 
 
 

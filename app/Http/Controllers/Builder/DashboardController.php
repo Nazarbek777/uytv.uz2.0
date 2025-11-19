@@ -11,7 +11,5 @@ class DashboardController extends Controller
     {
         return view('builder.dashboard');
     }
-}
 
-    }
 }
